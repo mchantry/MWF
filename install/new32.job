@@ -1,0 +1,48 @@
+  #=========== Global directives ===========
+  # @ job_name = new32
+  # @ output = $(job_name).$(step_name).$(jobid)
+  # @ error = $(output)
+ 
+  #=========== Step 1 directives ===========
+  #============= Execution step =============
+  # @ step_name = execution_step
+  # @ job_type = parallel
+  # @ total_tasks = 32
+  # @ wall_clock_limit = 10:00:00
+  # @ queue
+ 
+  #=========== Step 2 directives ===========
+  #=============== Copy step ===============
+  # @ step_name = copy_file
+  # @ dependency = (execution_step >= 0)
+  # (executed even if previous step completed with an error)
+  # @ job_type = serial
+  # @ queue
+ 
+  case ${LOADL_STEP_NAME} in
+    #============ Step 1 commands ============
+    #============= Execution step =============
+    execution_step )
+      set -x
+      cd $TMPDIR
+      cp ${LOADL_STEP_INITDIR}/main.out .
+      cp ${LOADL_STEP_INITDIR}/state.cdf.in .
+      echo $LOADL_STEP_INITDIR/RUNNING > OLOCATION
+      poe ./main.out
+    ;;
+ 
+    #============ Step 2 commands ============
+    #=============== Copy step ===============
+    copy_file )
+      set -x
+      cd $TMPDIR
+      tar -czf turb.tgz turb????.cdf.dat
+      rm -f turb????.cdf.dat
+      tar -czf spec.tgz vel_spec????.dat
+      rm -f vel_spec????.dat
+      tar -czf state.tgz state????.cdf.dat
+      rm -f state????.cdf.dat
+      cp -f * ${LOADL_STEP_INITDIR}/.
+    ;;
+ 
+  esac
