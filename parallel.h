@@ -1,7 +1,7 @@
 #ifndef parallel_h
 #define parallel_h
 !//***************************************************************/
-#define _Np 1024
+#define _Np 2
 #define _CPUTIME
 !/***************************************************************/
 
@@ -37,11 +37,11 @@
          do k = 1,i_K
 
 #define _loop_k0mn_begin  \
-   do n = 0, i_NN1 ;   \
-      nn = n;    \
-      do m = 0,i_M1;     \
-         do k = 0,i_K0-1;     \
-            k1 = k + 1;     \
+  do n = 0, i_NN1;\
+   nn = n;\
+      do m = 0,i_M1;\
+         do k = 0,i_K0-1;\
+            k1 = k + 1;\
             k2 = k + i_K0 
 
 #define _loop_kmn_end \

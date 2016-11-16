@@ -15,9 +15,15 @@ MODSOBJ		= mpi.o parameters.o \
 #COMPFLAGS	= -qsuffix=cpp=f90 -c -O3 -ffree-line-length-none #-c -O3 -fbounds-check 
 #LIBS		= -lm 
 #ADA COMPILATION
-COMPILER        = mpifort
-COMPFLAGS       = -ffree-line-length-none -x f95-cpp-input -c -O3 -mcmodel=medium
-LIBS            = -lm
+COMPILER        = mpif90
+COMPFLAGS       = -ffree-line-length-none -x f95-cpp-input -c -O3 -mcmodel=medium \
+	-I/network/aopp/cirrus/pred/sw/netcdf/4.3.3.1/gnu/463/include
+LIBS            = -lm \
+	-L/network/aopp/cirrus/pred/sw/netcdf/4.3.3.1/gnu/463/lib -lnetcdff -lnetcdf \
+	-L/network/home/aopp/chantry/code/fftw/lib -lfftw3
+#COMPILER        = mpiifort
+#COMPFLAGS       = -fpp -132 -c -O3 -mcmodel=medium -I/network/software/ubuntu_trusty/netcdf/3.6.3/include
+#LIBS            = -lm -L/network/software/ubuntu_trusty/netcdf/3.6.3/lib -lnetcdf
 #------------------------------------------------------------------------
 
 all : 	$(MODSOBJ) $(PROGDIR)main.f90
