@@ -16,7 +16,7 @@ MODSOBJ		= mpi.o parameters.o \
 #LIBS		= -lm 
 #ADA COMPILATION
 COMPILER        = mpif90
-COMPFLAGS       = -ffree-line-length-none -x f95-cpp-input -c -O3 -mcmodel=medium \
+COMPFLAGS       = -ffree-line-length-none -x f95-cpp-input -c -O3 -mcmodel=large \
 	-I/network/aopp/cirrus/pred/sw/netcdf/4.3.3.1/gnu/463/include
 LIBS            = -lm \
 	-L/network/aopp/cirrus/pred/sw/netcdf/4.3.3.1/gnu/463/lib -lnetcdff -lnetcdf \
