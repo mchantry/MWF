@@ -1,3 +1,5 @@
 *.[o]
-*.[mod]
-install/main*
+*.mod
+main.out
+install/main.out
+install/main.info
