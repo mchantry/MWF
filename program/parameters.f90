@@ -7,8 +7,8 @@
    double precision            ::  d_Re         = 67.9d0!67.8d0!875d0
    
    !NUMBER OF MODES TO USE IE HIGHEST WAVENUMBER + 1
-   integer,          parameter :: i_MM	        = 4096!512!2048!4096
-   integer,          parameter :: i_NN          = 1024!512!2048!512!2048!4096
+   integer,          parameter :: i_MM	        = 128!4096!512!2048!4096
+   integer,          parameter :: i_NN          = 128!1024!512!2048!512!2048!4096
    integer,          parameter :: i_K0          = 4
    
    double precision, parameter :: d_PI          = 3.1415926535897931d0
