@@ -4,18 +4,20 @@
    implicit none
    save
 
-   double precision            ::  d_Re         = 67.9d0!67.8d0!875d0
+   INTEGER, PARAMETER :: RKD = SELECTED_REAL_KIND(6,37)
+
+   REAL(KIND=RKD)            ::  d_Re         = 67.9d0!67.8d0!875d0
    
    !NUMBER OF MODES TO USE IE HIGHEST WAVENUMBER + 1
-   integer,          parameter :: i_MM	        = 128!4096!512!2048!4096
-   integer,          parameter :: i_NN          = 128!1024!512!2048!512!2048!4096
+   integer,          parameter :: i_MM	        = 32!4096!512!2048!4096
+   integer,          parameter :: i_NN          = 32!1024!512!2048!512!2048!4096
    integer,          parameter :: i_K0          = 4
    
-   double precision, parameter :: d_PI          = 3.1415926535897931d0
-   double precision, parameter :: d_Lx          = 8192d0!1024d0!4096d0!960d0!16d0
-   double precision, parameter :: d_Lz          = 2048d0!1024d0!4096d0!1024d0!4096d0!960d0!1024d0
-   double precision, parameter :: d_alpha       = 2d0*d_PI/d_Lx!0.5d0
-   double precision, parameter :: d_gamma       = 2d0*d_PI/d_Lz!0.5d0
+   REAL(KIND=RKD), parameter :: d_PI          = 3.1415926535897931d0
+   REAL(KIND=RKD), parameter :: d_Lx          = 8192d0!1024d0!4096d0!960d0!16d0
+   REAL(KIND=RKD), parameter :: d_Lz          = 2048d0!1024d0!4096d0!1024d0!4096d0!960d0!1024d0
+   REAL(KIND=RKD), parameter :: d_alpha       = 2d0*d_PI/d_Lx!0.5d0
+   REAL(KIND=RKD), parameter :: d_gamma       = 2d0*d_PI/d_Lz!0.5d0
 
    logical,          parameter :: s_reflect     = .false.!.TRUE.!.FALSE. 
    logical,          parameter :: s_uvreflect   = .FALSE.
@@ -24,17 +26,17 @@
    integer, parameter          :: i_maxtstep    = 1000!1d8
    integer, parameter          :: i_save_rate1  = 12500!1d8!50000!100000!5000
    integer, parameter          :: i_save_rate2  = 10!25!25!50 
-   double precision, parameter :: d_maxt        = -1d0
-   double precision, parameter :: d_cpuhours    = 9.7d0!1.7d0!19.6d0!0.98d0!1d99 !90d0
-   double precision, parameter :: d_time        = -1d0 !0d0
-   double precision, parameter :: d_thdeg       = 0d0!24d0
-   double precision, parameter :: d_dt          = 0.005d0!0.02d0
-   double precision, parameter :: d_minE        = 1d-10
+   REAL(KIND=RKD), parameter :: d_maxt        = -1d0
+   REAL(KIND=RKD), parameter :: d_cpuhours    = 9.7d0!1.7d0!19.6d0!0.98d0!1d99 !90d0
+   REAL(KIND=RKD), parameter :: d_time        = -1d0 !0d0
+   REAL(KIND=RKD), parameter :: d_thdeg       = 0d0!24d0
+   REAL(KIND=RKD), parameter :: d_dt          = 0.005d0!0.02d0
+   REAL(KIND=RKD), parameter :: d_minE        = 1d-10
 
-   double precision, parameter :: d_HYPO        = 0d0!1d-6 !1d-01
+   REAL(KIND=RKD), parameter :: d_HYPO        = 0d0!1d-6 !1d-01
    integer, parameter          :: i_PHYPO       = 2
-   double precision, parameter :: d_drag        = 1d-2 !1d-01
-   double precision, parameter :: d_vdrag       = 0d0
+   REAL(KIND=RKD), parameter :: d_drag        = 1d-2 !1d-01
+   REAL(KIND=RKD), parameter :: d_vdrag       = 0d0
    logical,          parameter :: s_dragall     = .true.!.false.
 
    logical, parameter          :: s_HIS         = .FALSE. !HISTORY DATA
@@ -52,8 +54,8 @@
    integer,          parameter :: i_KK          = 3*i_K0-1
    integer,          parameter :: i_M           = 2*(i_MM-1)
    integer,          parameter :: i_Ny          = 15
-   double precision, parameter :: d_beta        = d_PI/2d0
-   double precision, parameter :: d_theta       = d_thdeg/180d0*d_PI
+   REAL(KIND=RKD), parameter :: d_beta        = d_PI/2d0
+   REAL(KIND=RKD), parameter :: d_theta       = d_thdeg/180d0*d_PI
 
    integer,          parameter :: i_3M          = 3*i_MM
    integer,          parameter :: i_3N          = 3*i_NN
@@ -71,7 +73,7 @@
    integer,          parameter :: i_KK1  = i_KK-1
    integer,          parameter :: i_K1  = i_K0-1
 
-   double precision :: tim_t
+   REAL(KIND=RKD) :: tim_t
    integer          :: tim_step
 !---------------------------------------------------------------------------
 !  check params are ok

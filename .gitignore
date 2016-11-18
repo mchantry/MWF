@@ -1,5 +1,5 @@
 *.[o]
 *.mod
-main.out
+*.out
 install/main.out
 install/main.info

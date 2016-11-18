@@ -13,17 +13,21 @@
    use parameters
    use variables
    use mpif
+   use FFTW3
+!   include 'fftw3.f03'
+
    implicit none
    save
    !i_NN = (i_N /2 + 1)
    !i_Na = (i_3N/2 + 1) = (3*i_NN)/2 + 1
    integer, parameter, private :: i_Na = i_3N/2 !+ 1!(3*i_NN)/2 != 3*(i_N/2 + 1)/2
-   double complex,     private :: state_inp(i_KK,0:i_3M-1)!,state_res(i_KK,0:i_3M-1)
-   double complex,     private :: state_mid(i_KK,0:i_Na)
-   double precision,   private :: state_phy(i_KK,0:i_3N-1)
-   integer*8,          private :: plan_inp2mid, plan_mid2inp, plan_mid2phy, plan_phy2mid
-   double complex,     private ::  T(i_KK,0:i_3M-1,0:i_Np-1)
-   double complex,     private :: Ts(i_KK,0:i_NN1,0:i_Mp-1)
+   complex,     private :: state_inp(i_KK,0:i_3M-1)!,state_res(i_KK,0:i_3M-1)
+   complex,     private :: state_mid(i_KK,0:i_Na)
+   REAL(KIND=RKD),   private :: state_phy(i_KK,0:i_3N-1)
+!   integer*8,          private :: plan_inp2mid, plan_mid2inp, plan_mid2phy, plan_phy2mid
+   TYPE(c_ptr), private :: plan_inp2mid, plan_mid2inp, plan_mid2phy, plan_phy2mid
+   complex,     private ::  T(i_KK,0:i_3M-1,0:i_Np-1)
+   complex,     private :: Ts(i_KK,0:i_NN1,0:i_Mp-1)
 
  contains
 
@@ -38,11 +42,11 @@
       inembed = (/i_3M/) 
       istride=i_KK
       sgn=1
-      call dfftw_plan_many_dft(plan_inp2mid, 1, n, howmany,&
+      plan_inp2mid = fftwf_plan_many_dft(1, n, howmany,&
             state_inp, inembed, istride, &
             1,  state_inp, inembed, istride, 1, sgn, flag) !To Real transform
       sgn=-1
-      call dfftw_plan_many_dft(plan_mid2inp, 1, n, howmany,&
+      plan_mid2inp = fftwf_plan_many_dft(1, n, howmany,&
             state_inp, inembed, istride, &
             1,  state_inp, inembed, istride, 1, sgn, flag) !To Real transform
 
@@ -51,9 +55,9 @@
       inembed = (/i_Na+1/)!i_Na+1 
       ouembed = (/i_3N/) 
       istride=i_KK
-      call dfftw_plan_many_dft_c2r(plan_mid2phy, 1, n, howmany,state_mid, inembed, istride, &
+      plan_mid2phy = fftwf_plan_many_dft_c2r(1, n, howmany,state_mid, inembed, istride, &
          1,  state_phy, ouembed, istride, 1, flag) !To Real transform
-      call dfftw_plan_many_dft_r2c(plan_phy2mid, 1, n, howmany,state_phy, ouembed, istride, &
+      plan_phy2mid = fftwf_plan_many_dft_r2c(1, n, howmany,state_phy, ouembed, istride, &
          1,  state_mid, inembed, istride, 1, flag) !To Real transform
 
    end subroutine tra_precompute
@@ -71,16 +75,16 @@
          do m = -(i_M-i_MM),i_MM1
             mm=modulo(m,i_3M)
             ms=modulo(m,i_M)
-            state_inp(:,mm)=dcmplx(s%Re(:,ms,n),s%Im(:,ms,n))
+            state_inp(:,mm)=cmplx(s%Re(:,ms,n),s%Im(:,ms,n))
          end do
-         call dfftw_execute(plan_inp2mid)
+         call fftwf_execute_dft(plan_inp2mid,state_inp,state_inp)
          T(:,:,n)=state_inp   
       end do
       call tra_T2Ts()
       do m = 0,var_M%pH1
          state_mid(:,i_NN:)=0d0
          state_mid(:,0:i_NN1)=Ts(:,:,m)
-         call dfftw_execute(plan_mid2phy)
+         call fftwf_execute_dft_c2r(plan_mid2phy,state_mid,state_phy)
          p%Re(:,:,m) = state_phy
       end do
 
@@ -89,6 +93,7 @@
 
    subroutine tra_spectest(s)
       type (spec), intent(inout)  :: s
+      type (spec) :: st
       integer :: n,m,mm,ms
                   ! for each r_n ...      
       do n = 0,var_N%pH1
@@ -97,20 +102,20 @@
             mm=modulo(m,i_3M)
             ms=modulo(m,i_M)
             if (n==1) print*,m,mm,ms
-            state_inp(:,mm)=dcmplx(s%Re(:,ms,n),s%Im(:,ms,n))
+            state_inp(:,mm)=cmplx(s%Re(:,ms,n),s%Im(:,ms,n))
          end do
          if (n==1) print*,'BEFORE _-----------------'
-         if (n==1) print*, dble(state_inp(1,:))
-         call dfftw_execute(plan_inp2mid)
+         if (n==1) print*, real(state_inp(1,:))
+         call fftwf_execute_dft(plan_inp2mid,state_inp,state_inp)
          state_inp=state_inp/(i_3M)
          if (n==1) print*,'AFTER --------------------'
-         call dfftw_execute(plan_mid2inp)
-         if (n==1) print*, dble(state_inp(1,:))
+         call fftwf_execute_dft(plan_mid2inp,state_inp,state_inp)
+         if (n==1) print*, real(state_inp(1,:))
          do m = - (i_M - i_MM),i_MM1
             mm = modulo(m,i_3M)
             ms = modulo(m,i_M)
-            s%Re(:,ms,n)= dble(state_inp(:,mm))
-            s%Im(:,ms,n)=dimag(state_inp(:,mm))
+            s%Re(:,ms,n)= real(state_inp(:,mm))
+            s%Im(:,ms,n)=imag(state_inp(:,mm))
          end do
       end do
    end subroutine tra_spectest
@@ -123,23 +128,23 @@
       type (spec), intent(out)  :: s
       type (phys), intent(in) :: p
       integer :: n,m,mm,ms
-      double precision :: scale_
+      REAL(KIND=RKD) :: scale_
                   ! scale, FFTW 4.7.2
-      scale_ = 1d0 / dble(i_3M*i_3N)
+      scale_ = 1d0 / real(i_3M*i_3N)
       do m = 0,var_M%pH1
          state_phy = scale_ * p%Re(:,:,m)
-         call dfftw_execute(plan_phy2mid)
+         call fftwf_execute_dft_r2c(plan_phy2mid,state_phy,state_mid)
          Ts(:,:,m) = state_mid(:,0:i_NN1)
       end do
       call tra_Ts2T
       do n = 0,var_N%pH1
          state_inp = T(:,:,n)
-         call dfftw_execute(plan_mid2inp)
+         call fftwf_execute_dft(plan_mid2inp,state_inp,state_inp)
          do m = - (i_M - i_MM),i_MM1
             mm = modulo(m,i_3M)
             ms = modulo(m,i_M)
-            s%Re(:,ms,n)= dble(state_inp(:,mm))
-            s%Im(:,ms,n)=dimag(state_inp(:,mm))
+            s%Re(:,ms,n)= real(state_inp(:,mm))
+            s%Im(:,ms,n)=imag(state_inp(:,mm))
          end do
       end do
    end subroutine tra_phys2spec
@@ -160,15 +165,15 @@
 
 #else
    subroutine tra_Ts2T()!var_tran2spec(c,s)
-      double precision :: bsend(i_KK,2*i_Np*i_Mp,0:_Np-1)
-      double precision :: brecv(i_KK,2*i_Np*i_Mp,0:_Np-1)
+      REAL(KIND=RKD) :: bsend(i_KK,2*i_Np*i_Mp,0:_Np-1)
+      REAL(KIND=RKD) :: brecv(i_KK,2*i_Np*i_Mp,0:_Np-1)
       integer :: stp, dst,src, n,m,l,j
 
       do stp = 0, mpi_sze-1
          src  = modulo(mpi_sze-stp+mpi_rnk, mpi_sze)         
          mpi_tg = stp 
          call mpi_irecv( brecv(1,1,stp), 2*i_KK*(var_M%pH1_(src)+1)*(var_N%pH1+1), &
-            mpi_double_precision, src, mpi_tg, mpi_comm_world,  &
+            mpi_real, src, mpi_tg, mpi_comm_world,  &
             mpi_rq(stp), mpi_er)
       end do
       do stp = 0, mpi_sze-1
@@ -176,14 +181,14 @@
          l = 1
          do n = var_N%ph0_(dst), var_N%ph0_(dst)+var_N%ph1_(dst)
             do m = 0, var_M%pH1
-               bsend(:,l,  stp)   =  dble(Ts(:,n,m))
-               bsend(:,l+1,stp) = dimag(Ts(:,n,m))
+               bsend(:,l,  stp)   =  real(Ts(:,n,m))
+               bsend(:,l+1,stp) = imag(Ts(:,n,m))
                l = l + 2
             end do
          end do
          mpi_tg = stp
          call mpi_isend( bsend(1,1,stp), 2*i_KK*(var_N%pH1_(dst)+1)*(var_M%pH1+1),  &
-            mpi_double_precision, dst, mpi_tg, mpi_comm_world,  &
+            mpi_real, dst, mpi_tg, mpi_comm_world,  &
             mpi_rq(mpi_sze+stp), mpi_er)
       end do
 
@@ -194,7 +199,7 @@
          do n = 0, var_N%pH1
             do m = var_M%pH0_(src), var_M%pH0_(src)+var_M%pH1_(src)
                do j = 1,i_KK
-                  T(j,m,n)= dcmplx(brecv(j,l,stp),brecv(j,l+1,stp))
+                  T(j,m,n)= cmplx(brecv(j,l,stp),brecv(j,l+1,stp))
                end do 
                l = l + 2
             end do
@@ -219,14 +224,14 @@
    
 #else
    subroutine tra_T2Ts()
-      double precision :: bsend(i_KK,2*i_Np*i_Mp,0:_Np-1)
-      double precision :: brecv(i_KK,2*i_Np*i_Mp,0:_Np-1)
+      REAL(KIND=RKD) :: bsend(i_KK,2*i_Np*i_Mp,0:_Np-1)
+      REAL(KIND=RKD) :: brecv(i_KK,2*i_Np*i_Mp,0:_Np-1)
       integer :: stp, dst,src, n,m,l,j,lk
       do stp = 0, mpi_sze-1
          src  = modulo(mpi_sze-stp+mpi_rnk, mpi_sze)         
          mpi_tg = stp 
             call mpi_irecv( brecv(1,1,stp), 2*i_KK*(var_N%pH1_(src)+1)*(var_M%pH1+1), &
-            mpi_double_precision, src, mpi_tg, mpi_comm_world,  &
+            mpi_real, src, mpi_tg, mpi_comm_world,  &
             mpi_rq(stp), mpi_er)
       end do
       do stp = 0, mpi_sze-1
@@ -235,14 +240,14 @@
          lk=l+i_KK1
          do m = var_M%ph0_(dst), var_M%ph0_(dst)+var_M%ph1_(dst)
             do n = 0, var_N%pH1
-               bsend(:,l,stp)   =  dble(T(:,m,n))
-               bsend(:,l+1,stp) = dimag(T(:,m,n))
+               bsend(:,l,stp)   =  real(T(:,m,n))
+               bsend(:,l+1,stp) = imag(T(:,m,n))
                l=l+2
             end do
          end do
          mpi_tg = stp
          call mpi_isend( bsend(1,1,stp), 2*i_KK*(var_M%ph1_(dst)+1)*(var_N%pH1+1),  &
-            mpi_double_precision, dst, mpi_tg, mpi_comm_world,  &
+            mpi_real, dst, mpi_tg, mpi_comm_world,  &
             mpi_rq(mpi_sze+stp), mpi_er)
       end do
 
@@ -253,7 +258,7 @@
          do m = 0, var_M%pH1
             do n = var_N%pH0_(src), var_N%pH0_(src)+var_N%pH1_(src)
                do j=1,i_KK
-                  Ts(j,n,m)= dcmplx(brecv(j,l,stp),brecv(j,l+1,stp))
+                  Ts(j,n,m)= cmplx(brecv(j,l,stp),brecv(j,l+1,stp))
                end do 
                l = l + 2
             end do

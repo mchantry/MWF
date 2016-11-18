@@ -11,7 +11,7 @@
    implicit none
    save
    type tst
-      double precision     :: Re(3,0:i_SN-1, 0:i_SMp-1,i_MT)
+      REAL(KIND=RKD)     :: Re(3,0:i_SN-1, 0:i_SMp-1,i_MT)
     end type tst
    
    integer :: turb_save2 = 0
@@ -128,14 +128,14 @@
                pT0 = (var_M%pH0_(r))/i_DM
                pT1 = (var_M%pH1_(r)+1)/i_DM - 1 
                mpi_tg = r
-               call mpi_recv( c1%Re(1,0,0,1), 3*i_SM*(pT1+1), mpi_double_precision,  &
+               call mpi_recv( c1%Re(1,0,0,1), 3*i_SM*(pT1+1), mpi_real,  &
                     r, mpi_tg, mpi_comm_world, mpi_st, mpi_er)
                e=nf90_put_var(f,id,c1%Re(1:3,0:i_SN-1,0:pT1,1), start=(/1,1,pT0+1/))
             end do
          else
             mpi_tg = mpi_rnk
             pT1 = (var_M%pH1+1)/i_DM - 1
-           call mpi_send( a%Re(1,0,0,10), 3*i_SM*(pT1+1), mpi_double_precision,  &
+           call mpi_send( a%Re(1,0,0,10), 3*i_SM*(pT1+1), mpi_real,  &
                  0, mpi_tg, mpi_comm_world, mpi_er)
          end if
       end if

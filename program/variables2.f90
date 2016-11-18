@@ -6,22 +6,22 @@
    implicit none
    save
    type phys
-      double precision     :: Re(i_KK,0:i_3N-1, 0:i_Mp-1)
+      REAL(KIND=RKD)     :: Re(i_KK,0:i_3N-1, 0:i_Mp-1)
    end type phys
    
    type mpt
-      double precision     :: Re(i_K,0:i_M1, 0:i_Np-1)
-      double precision     :: Im(i_K,0:i_M1, 0:i_Np-1)
+      REAL(KIND=RKD)     :: Re(i_K,0:i_M1, 0:i_Np-1)
+      REAL(KIND=RKD)     :: Im(i_K,0:i_M1, 0:i_Np-1)
    end type mpt 
 
    type spec
-      double precision     :: Re(i_KK,0:i_M1, 0:i_Np-1)
-      double precision     :: Im(i_KK,0:i_M1, 0:i_Np-1)
+      REAL(KIND=RKD)     :: Re(i_KK,0:i_M1, 0:i_Np-1)
+      REAL(KIND=RKD)     :: Im(i_KK,0:i_M1, 0:i_Np-1)
    end type spec
    
    type tran
-      double precision     :: Re(i_KK,0:i_NN1, 0:i_Mp-1)
-      double precision     :: Im(i_KK,0:i_NN1, 0:i_Mp-1)
+      REAL(KIND=RKD)     :: Re(i_KK,0:i_NN1, 0:i_Mp-1)
+      REAL(KIND=RKD)     :: Im(i_KK,0:i_NN1, 0:i_Mp-1)
    end type tran
 
    type harm
@@ -30,12 +30,12 @@
 
 
    type (harm)               :: var_M,var_N
-   double precision, private :: ad_n2(0:i_NN1)
-   double precision, private :: ad_n1(0:i_NN1)
-   double precision, private :: ad_m1(0:i_M1)
-   double precision, private :: ad_m2(0:i_M1)
-   double precision, private :: ad_k1(0:i_K0-1)
-   double precision, private :: ad_k2(0:i_K0-1)
+   REAL(KIND=RKD), private :: ad_n2(0:i_NN1)
+   REAL(KIND=RKD), private :: ad_n1(0:i_NN1)
+   REAL(KIND=RKD), private :: ad_m1(0:i_M1)
+   REAL(KIND=RKD), private :: ad_m2(0:i_M1)
+   REAL(KIND=RKD), private :: ad_k1(0:i_K0-1)
+   REAL(KIND=RKD), private :: ad_k2(0:i_K0-1)
 
  contains
 
@@ -132,7 +132,7 @@
 
    subroutine var_maskmpt(c)
       type (mpt), intent(inout) :: c
-      double precision :: mval,mn
+      REAL(KIND=RKD) :: mval,mn
    _loop_mn_vars
    _loop_mn_begin
       mm = m
@@ -193,7 +193,7 @@
    subroutine var_randspec(c)
      type (spec), intent(out) :: c
      integer,parameter :: seed = 86456
-     double precision :: r
+     REAL(KIND=RKD) :: r
      _loop_kmn_vars
      !         call srand(seed+mpi_rnk)
      _loop_kmn_begin
@@ -213,7 +213,7 @@
    subroutine var_randmpt(c)
      type (mpt), intent(out) :: c
 !      integer,parameter :: seed = 82342
-      double precision :: r
+      REAL(KIND=RKD) :: r
       _loop_kmn_vars
       _loop_kmn_begin
       if ((n+var_N%pH0)==0) cycle
@@ -431,7 +431,7 @@
    end subroutine var_null
 
    subroutine var_precompute()
-      double precision :: lap,hlap,tvl
+      REAL(KIND=RKD) :: lap,hlap,tvl
       integer :: m,n,r,k
          			! distribute modes accross processors
       var_M%pH1_ = -1
@@ -479,7 +479,7 @@
 
   subroutine var_LHSRHS(l,r) 
    type (mpt), intent(out) :: l,r
-    double precision :: lap,hlap,tvl
+    REAL(KIND=RKD) :: lap,hlap,tvl
    _loop_kmn_vars
    _loop_k0mn_begin
    lap =(ad_m2(m)+ad_k2(k)+ad_n2(nn))

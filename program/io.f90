@@ -119,7 +119,7 @@
 !--------------------------------------------------------------------------
    subroutine io_load_state()
       integer :: e, f, i, rd
-      double precision :: d
+      REAL(KIND=RKD) :: d
 
       if(mpi_rnk==0)      print*, "Loading: ",io_statefile
       e=nf90_open(io_statefile, nf90_nowrite, f)      
@@ -134,18 +134,18 @@
       end if
 
       e=nf90_get_att(f,nf90_global,'t', d)
-      if(d_time<0d0) tim_t = d
-      if(mpi_rnk==0 .and. dabs(tim_t-d)>1d-8)  &
+      if(d_time<0.0_RKD) tim_t = d
+      if(mpi_rnk==0 .and. abs(tim_t-d)>1d-5)  &
          print*,' t    :',d,' --> ', tim_t
 
       e=nf90_get_att(f,nf90_global,'Re', d)
-      if(mpi_rnk==0 .and. dabs(d_Re-d)>1d-8)  &
+      if(mpi_rnk==0 .and. abs(d_Re-d)>1d-5)  &
          print*,' Re   :',d,' --> ', d_Re
       e=nf90_get_att(f,nf90_global,'alpha', d)
-      if(mpi_rnk==0 .and. dabs(d_alpha-d)>1d-8)  &
+      if(mpi_rnk==0 .and. abs(d_alpha-d)>1d-5)  &
          print*,' alpha:',d,' --> ', d_alpha
       e=nf90_get_att(f,nf90_global,'gamma', d)
-      if(mpi_rnk==0 .and. dabs(d_gamma-d)>1d-8)  &
+      if(mpi_rnk==0 .and. abs(d_gamma-d)>1d-5)  &
          print*,' gamma:',d,' --> ', d_gamma
 
       call io_load_mpt(f,'mpt',vel_c)
@@ -193,8 +193,8 @@
          stop 'wrong state size'
       end if
       
-      a%Re = 0d0
-      a%Im = 0d0
+      a%Re = 0.0_RKD
+      a%Im = 0.0_RKD
 
       e=nf90_get_var(f,i, a%Re(:,:,:),start=(/1,1,var_N%pH0+1,1/))
       e=nf90_get_var(f,i, a%Im(:,:,:),start=(/1,1,var_N%pH0+1,2/))
@@ -221,8 +221,8 @@
          if(N__ /=i_NN)  print*, nm, ' NN :', N__,' --> ',i_NN 
       end if
 
-      a%Re = 0d0
-      a%Im = 0d0
+      a%Re = 0.0_RKD
+      a%Im = 0.0_RKD
 
       N1 = min(N__,i_NN)-1
       M1 = min(M__,i_MM)-1
@@ -320,18 +320,18 @@
             pN0 = var_N%pH0_(r)
             pN1 = var_N%pH1_(r)
             mpi_tg = r
-            call mpi_recv( c1%Re(1,0,0), i_M*(pN1+1)*i_K, mpi_double_precision,  &
+            call mpi_recv( c1%Re(1,0,0), i_M*(pN1+1)*i_K, mpi_real,  &
                r, mpi_tg, mpi_comm_world, mpi_st, mpi_er)
-            call mpi_recv( c1%Im(1,0,0), i_M*(pN1+1)*i_K, mpi_double_precision,  &
+            call mpi_recv( c1%Im(1,0,0), i_M*(pN1+1)*i_K, mpi_real,  &
                r, mpi_tg, mpi_comm_world, mpi_st, mpi_er)
             e=nf90_put_var(f,id,c1%Re(1:i_K,0:i_M1,0:pN1), start=(/1,1,pN0+1,1/))
             e=nf90_put_var(f,id,c1%Im(1:i_K,0:i_M1,0:pN1), start=(/1,1,pN0+1,2/))
          end do
       else
          mpi_tg = mpi_rnk
-         call mpi_send( a%Re(1,0,0), i_M*(var_N%pH1+1)*i_K, mpi_double_precision,  &
+         call mpi_send( a%Re(1,0,0), i_M*(var_N%pH1+1)*i_K, mpi_real,  &
             0, mpi_tg, mpi_comm_world, mpi_er)
-         call mpi_send( a%Im(1,0,0), i_M*(var_N%pH1+1)*i_K, mpi_double_precision,  &
+         call mpi_send( a%Im(1,0,0), i_M*(var_N%pH1+1)*i_K, mpi_real,  &
             0, mpi_tg, mpi_comm_world, mpi_er)
       end if
 #endif      
@@ -343,24 +343,24 @@
    subroutine io_save_Uspec()
      
      type(spec) :: tmp
-     double precision :: n_(0:i_NN1), m_(0:i_MM1)
-     double precision :: n__(0:i_NN1), m__(0:i_MM1)
-     double precision :: d, dRe, dIm
+     REAL(KIND=RKD) :: n_(0:i_NN1), m_(0:i_MM1)
+     REAL(KIND=RKD) :: n__(0:i_NN1), m__(0:i_MM1)
+     REAL(KIND=RKD) :: d, dRe, dIm
      character(4) :: cnum
      integer :: i
      _loop_kmn_vars
 10   format(i4,1e20.12)
      
      call var_mpt2spec(vel_c,tmp)
-     n_ = 0d0
-     m_ = 0d0
+     n_ = 0.0_RKD
+     m_ = 0.0_RKD
      _loop_mn_begin
      mm = m
      if (m > i_MM1) mm = i_M - m
      do k=1,i_KK
         dRe=tmp%Re(k,m,n)
         dIm=tmp%Im(k,m,n) 
-        d = dsqrt(dRe*dRe+dIm*dIm)
+        d = sqrt(dRe*dRe+dIm*dIm)
         n_(nn)  = max(d, n_(nn))
         m_(mm)  = max(d, m_(mm))
      end do
@@ -368,10 +368,10 @@
      
 #ifdef _MPI
      call mpi_barrier(mpi_comm_world, mpi_er)
-     call mpi_allreduce(n_(0), n__(0), i_NN, mpi_double_precision,  &
+     call mpi_allreduce(n_(0), n__(0), i_NN, mpi_real,  &
           mpi_max, mpi_comm_world, mpi_er)
      n_ = n__
-     call mpi_allreduce(m_(0), m__(0), i_MM, mpi_double_precision,  &
+     call mpi_allreduce(m_(0), m__(0), i_MM, mpi_real,  &
           mpi_max, mpi_comm_world, mpi_er)
      m_ = m__
 #endif
@@ -397,33 +397,33 @@
 !  save spectrum !var_mpt2spec
 !--------------------------------------------------------------------------
    subroutine io_save_spectrum()
-      double precision :: n_(0:i_NN1), m_(0:i_MM1)
-      double precision :: n__(0:i_NN1), m__(0:i_MM1)
-      double precision :: d, dRe, dIm
+      REAL(KIND=RKD) :: n_(0:i_NN1), m_(0:i_MM1)
+      REAL(KIND=RKD) :: n__(0:i_NN1), m__(0:i_MM1)
+      REAL(KIND=RKD) :: d, dRe, dIm
       character(4) :: cnum
       integer :: i
       _loop_kmn_vars
    10 format(i4,1e20.12)
       
-      n_ = 0d0
-      m_ = 0d0
+      n_ = 0.0_RKD
+      m_ = 0.0_RKD
       _loop_kmn_begin
       mm = m
       if (m > i_MM1) mm = i_M - m
 !      print*,mpi_rnk,k,mm,nn
       dRe=vel_c%Re(k,m,n)
       dIm=vel_c%Im(k,m,n) 
-      d = dsqrt(dRe*dRe+dIm*dIm)
+      d = sqrt(dRe*dRe+dIm*dIm)
       n_(nn)  = max(d, n_(nn))
       m_(mm)  = max(d, m_(mm))
       _loop_kmn_end
       
 #ifdef _MPI
       call mpi_barrier(mpi_comm_world, mpi_er)
-      call mpi_allreduce(n_(0), n__(0), i_NN, mpi_double_precision,  &
+      call mpi_allreduce(n_(0), n__(0), i_NN, mpi_real,  &
          mpi_max, mpi_comm_world, mpi_er)
       n_ = n__
-      call mpi_allreduce(m_(0), m__(0), i_MM, mpi_double_precision,  &
+      call mpi_allreduce(m_(0), m__(0), i_MM, mpi_real,  &
          mpi_max, mpi_comm_world, mpi_er)
       m_ = m__
 #endif
@@ -450,14 +450,14 @@
 !--------------------------------------------------------------------------
    subroutine io_write_energy(sp)
       type (phys), intent(in) :: sp
-      double precision :: E
+      REAL(KIND=RKD) :: E
 
       call vel_energy(sp,E)
       
       if(mpi_rnk/=0) return
       write(io_KE,'(2e20.12)')  tim_t, E
       
-      if(E>d_minE .or. tim_t<20d0) return
+      if(E>d_minE .or. tim_t<20.0_RKD) return
       print*, 'io_write_energy: Relaminarised!'
       open(99,file=oloc)
       close(99, status='delete')
@@ -469,13 +469,13 @@
 !--------------------------------------------------------------------------
    subroutine io_write_history(sp)
       type (phys), intent(in) :: sp
-      double precision :: H(4,i_H)
+      REAL(KIND=RKD) :: H(4,i_H)
       integer :: i
 
       if(mpi_rnk/=0) return
-      call vel_history(sp,0d0,H)
+      call vel_history(sp,0.0_RKD,H)
       do i=1,i_H
-         write(io_HI,'(6e20.12)')  tim_t, 0d0,H(1,i),H(2,i),H(3,i),H(4,i)
+         write(io_HI,'(6e20.12)')  tim_t, 0.0_RKD,H(1,i),H(2,i),H(3,i),H(4,i)
       end do
 
    end subroutine io_write_history
@@ -484,7 +484,7 @@
    Subroutine io_writeVTK_xz(V,y,cnum,xs,zs)
   
      type(phys),intent(in) :: V
-     double precision, intent(in) :: y
+     REAL(KIND=RKD), intent(in) :: y
      integer, optional :: xs,zs
      character(4) :: cnum
      integer :: io,ix,iz,M_,N_
@@ -514,7 +514,7 @@
         end do
         
         write(io,'(A,i5,A)') "Y_COORDINATES ",1, " FLOAT"
-        write(io,'(f9.5)') 0d0
+        write(io,'(f9.5)') 0.0_RKD
         
         write(io,'(A,i5,A)') "Z_COORDINATES ",N_+1, " FLOAT"
         do ix=0,i_3N,zs
@@ -548,12 +548,12 @@
    Subroutine io_writeVTK_txz(V,cnum,xs,zs,ct)
   
      type(phys),intent(in) :: V
-     double precision, intent(in) :: ct
+     REAL(KIND=RKD), intent(in) :: ct
      integer, optional :: xs,zs
      character(4) :: cnum
      integer :: io,ix,iz,M_,N_,t
      character(10) :: s = 'unknown', a = 'sequential'
-     double precision :: ke
+     REAL(KIND=RKD) :: ke
 
      if (.not. present(zs)) then
         xs=1
@@ -580,7 +580,7 @@
         end do
         
         write(io,'(A,i5,A)') "Y_COORDINATES ",1, " FLOAT"
-        write(io,'(f9.5)') 0d0
+        write(io,'(f9.5)') 0.0_RKD
         
         write(io,'(A,i5,A)') "Z_COORDINATES ",N_+1, " FLOAT"
         do ix=0,i_3N,zs
@@ -621,7 +621,7 @@
      integer, optional :: xs,zs
      character(4) :: cnum
      integer :: io,ix,iy,iz,M_,N_
-     double precision :: y
+     REAL(KIND=RKD) :: y
      character(10) :: s = 'unknown', a = 'sequential'
      
      if (.not. present(zs)) then

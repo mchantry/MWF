@@ -76,8 +76,8 @@ contains
   subroutine vel_addlam(u)
     type (spec), intent(inout) :: u
     if (var_N%pH0 == 0) then 
-       u%Re(2,0,0) = u%Re(2,0,0) + dcos(d_theta)
-       u%Re(2*i_K0+1,0,0) = u%Re(2*i_K0+1,0,0) + dsin(d_theta)
+       u%Re(2,0,0) = u%Re(2,0,0) + cos(d_theta)
+       u%Re(2*i_K0+1,0,0) = u%Re(2*i_K0+1,0,0) + sin(d_theta)
     end if
   end subroutine vel_addlam
   
@@ -113,9 +113,9 @@ contains
   end subroutine vel_nonlinear
   
   function epos(u) result(e)
-    double precision :: e
-    double precision,intent(in) :: u(i_KK)
-    double precision :: udotu(i_K0)
+    REAL(KIND=RKD) :: e
+    REAL(KIND=RKD),intent(in) :: u(i_KK)
+    REAL(KIND=RKD) :: udotu(i_K0)
     
     udotu = nluw(u(1:i_K0),u(1:i_K0))
     e = udotu(1)
@@ -126,10 +126,10 @@ contains
   end function epos
 
   function eposC(u) result(e)
-    double precision :: e(3)
-    double precision,intent(in) :: u(i_KK)
-    double precision :: udotu(i_K0)
-    double precision :: t(i_KK)
+    REAL(KIND=RKD) :: e(3)
+    REAL(KIND=RKD),intent(in) :: u(i_KK)
+    REAL(KIND=RKD) :: udotu(i_K0)
+    REAL(KIND=RKD) :: t(i_KK)
     t=u
 !    t(1) = 0d0
 !    t(2*i_K0) = 0d0
@@ -143,15 +143,15 @@ contains
 
   subroutine vel_energy(a,e)
     type (phys), intent(in) :: a
-    double precision, intent(out) :: e
-    double precision :: e_
+    REAL(KIND=RKD), intent(out) :: e
+    REAL(KIND=RKD) :: e_
     _loop_mn_vars
     e=0
     _loop_phy_begin
     e = e + epos(a%Re(:,n,m))
     _loop_mn_end
 #ifdef _MPI
-    call mpi_allreduce( e, e_, 1, mpi_double_precision,  &
+    call mpi_allreduce( e, e_, 1, mpi_real,  &
          mpi_sum, mpi_comm_world, mpi_er)
     if(mpi_rnk/=0) return
     e = e_
@@ -164,9 +164,9 @@ contains
     subroutine vel_history(V,y,ans)
     
     type(phys), intent(in) :: V
-    double precision, intent(out) :: ans(4,i_H)
+    REAL(KIND=RKD), intent(out) :: ans(4,i_H)
     integer :: j,ji
-    double precision,intent(in) :: y
+    REAL(KIND=RKD),intent(in) :: y
 
     if(mpi_rnk/=0) return 
     do j=1,i_H

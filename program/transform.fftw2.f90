@@ -21,7 +21,7 @@
    integer, parameter, private :: i_Na = (3*i_NN)/2
    double complex,     private :: state_inp(i_KK,0:i_3M-1),state_res(i_KK,0:i_3M-1)
    double complex,     private :: state_mid(i_KK,0:i_Na)
-   double precision,   private :: state_phy(i_KK,0:i_3N-1)
+   REAL(KIND=RKD),   private :: state_phy(i_KK,0:i_3N-1)
    integer*8,          private :: plan_inp2mid, plan_mid2inp, plan_mid2phy, plan_phy2mid
    double complex,     private ::  T(i_KK,0:i_3M-1,0:i_Np-1)
    double complex,     private :: Ts(i_KK,0:i_NN1, 0:i_Mp-1)
@@ -122,7 +122,7 @@
       type (spec), intent(out)  :: s
       type (phys), intent(in) :: p
       integer :: n,m,mm,ms
-      double precision :: scale_
+      REAL(KIND=RKD) :: scale_
                   ! scale, FFTW 4.7.2
       scale_ = 1d0 / dble(i_3M*i_3N)
       
@@ -161,15 +161,15 @@ _loop_mn_end
 
 #else
    subroutine tra_Ts2T()!var_tran2spec(c,s)
-      double precision :: bsend(i_KK,2*i_Np*i_Mp,0:_Np-1)
-      double precision :: brecv(i_KK,2*i_Np*i_Mp,0:_Np-1)
+      REAL(KIND=RKD) :: bsend(i_KK,2*i_Np*i_Mp,0:_Np-1)
+      REAL(KIND=RKD) :: brecv(i_KK,2*i_Np*i_Mp,0:_Np-1)
       integer :: stp, dst,src, n,m,l,j
 
       do stp = 0, mpi_sze-1
          src  = modulo(mpi_sze-stp+mpi_rnk, mpi_sze)         
          mpi_tg = stp 
          call mpi_irecv( brecv(1,1,stp), 2*i_KK*(var_M%pH1_(src)+1)*(var_N%pH1+1), &
-            mpi_double_precision, src, mpi_tg, mpi_comm_world,  &
+            mpi_real, src, mpi_tg, mpi_comm_world,  &
             mpi_rq(stp), mpi_er)
       end do
       do stp = 0, mpi_sze-1
@@ -184,7 +184,7 @@ _loop_mn_end
          end do
          mpi_tg = stp
          call mpi_isend( bsend(1,1,stp), 2*i_KK*(var_N%pH1_(dst)+1)*(var_M%pH1+1),  &
-            mpi_double_precision, dst, mpi_tg, mpi_comm_world,  &
+            mpi_real, dst, mpi_tg, mpi_comm_world,  &
             mpi_rq(mpi_sze+stp), mpi_er)
       end do
 
@@ -220,14 +220,14 @@ _loop_mn_end
    
 #else
    subroutine tra_T2Ts()
-      double precision :: bsend(i_KK,2*i_Np*i_Mp,0:_Np-1)
-      double precision :: brecv(i_KK,2*i_Np*i_Mp,0:_Np-1)
+      REAL(KIND=RKD) :: bsend(i_KK,2*i_Np*i_Mp,0:_Np-1)
+      REAL(KIND=RKD) :: brecv(i_KK,2*i_Np*i_Mp,0:_Np-1)
       integer :: stp, dst,src, n,m,l,j,lk
       do stp = 0, mpi_sze-1
          src  = modulo(mpi_sze-stp+mpi_rnk, mpi_sze)         
          mpi_tg = stp 
             call mpi_irecv( brecv(1,1,stp), 2*i_KK*(var_N%pH1_(src)+1)*(var_M%pH1+1), &
-            mpi_double_precision, src, mpi_tg, mpi_comm_world,  &
+            mpi_real, src, mpi_tg, mpi_comm_world,  &
             mpi_rq(stp), mpi_er)
       end do
       do stp = 0, mpi_sze-1
@@ -243,7 +243,7 @@ _loop_mn_end
          end do
          mpi_tg = stp
          call mpi_isend( bsend(1,1,stp), 2*i_KK*(var_M%ph1_(dst)+1)*(var_N%pH1+1),  &
-            mpi_double_precision, dst, mpi_tg, mpi_comm_world,  &
+            mpi_real, dst, mpi_tg, mpi_comm_world,  &
             mpi_rq(mpi_sze+stp), mpi_er)
       end do
 

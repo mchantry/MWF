@@ -6,22 +6,22 @@
    implicit none
    save
    type phys
-      double precision     :: Re(i_KK,0:i_3N-1, 0:i_Mp-1)
+      REAL(KIND=RKD)     :: Re(i_KK,0:i_3N-1, 0:i_Mp-1)
    end type phys
    
    type mpt
-      double precision     :: Re(i_K,0:i_M1, 0:i_Np-1)
-      double precision     :: Im(i_K,0:i_M1, 0:i_Np-1)
+      REAL(KIND=RKD)     :: Re(i_K,0:i_M1, 0:i_Np-1)
+      REAL(KIND=RKD)     :: Im(i_K,0:i_M1, 0:i_Np-1)
    end type mpt 
 
    type spec
-      double precision     :: Re(i_KK,0:i_M1, 0:i_Np-1)
-      double precision     :: Im(i_KK,0:i_M1, 0:i_Np-1)
+      REAL(KIND=RKD)     :: Re(i_KK,0:i_M1, 0:i_Np-1)
+      REAL(KIND=RKD)     :: Im(i_KK,0:i_M1, 0:i_Np-1)
    end type spec
    
    type tran
-      double precision     :: Re(i_KK,0:i_NN1, 0:i_Mp-1)
-      double precision     :: Im(i_KK,0:i_NN1, 0:i_Mp-1)
+      REAL(KIND=RKD)     :: Re(i_KK,0:i_NN1, 0:i_Mp-1)
+      REAL(KIND=RKD)     :: Im(i_KK,0:i_NN1, 0:i_Mp-1)
    end type tran
 
    type harm
@@ -30,12 +30,12 @@
 
 
    type (harm)               :: var_M,var_N
-   double precision, private :: ad_n2(0:i_NN1)
-   double precision, private :: ad_n1(0:i_NN1)
-   double precision, private :: ad_m1(0:i_M1)
-   double precision, private :: ad_m2(0:i_M1)
-   double precision, private :: ad_k1(0:i_K0-1)
-   double precision, private :: ad_k2(0:i_K0-1)
+   REAL(KIND=RKD), private :: ad_n2(0:i_NN1)
+   REAL(KIND=RKD), private :: ad_n1(0:i_NN1)
+   REAL(KIND=RKD), private :: ad_m1(0:i_M1)
+   REAL(KIND=RKD), private :: ad_m2(0:i_M1)
+   REAL(KIND=RKD), private :: ad_k1(0:i_K0-1)
+   REAL(KIND=RKD), private :: ad_k2(0:i_K0-1)
 
  contains
 
@@ -132,7 +132,7 @@
 
    subroutine var_maskmpt(c)
       type (mpt), intent(inout) :: c
-      double precision :: mval,mn
+      REAL(KIND=RKD) :: mval,mn
    _loop_mn_vars
    _loop_mn_begin
       mm = m
@@ -147,7 +147,7 @@
    subroutine var_doubleX(c)
       type (mpt), intent(inout) :: c
       type (mpt) :: tmp
-      double precision :: mval,mn
+      REAL(KIND=RKD) :: mval,mn
 _loop_mn_vars
       call var_mpt_init(tmp)
 _loop_mn_begin
@@ -167,7 +167,7 @@ _loop_mn_end
    subroutine var_quadX(c)
       type (mpt), intent(inout) :: c
       type (mpt) :: tmp
-      double precision :: mval,mn
+      REAL(KIND=RKD) :: mval,mn
 _loop_mn_vars
       call var_mpt_init(tmp)
 _loop_mn_begin
@@ -233,7 +233,7 @@ _loop_mn_end
    subroutine var_randspec(c)
      type (spec), intent(out) :: c
      integer,parameter :: seed = 86456
-     double precision :: r
+     REAL(KIND=RKD) :: r
      _loop_kmn_vars
      !         call srand(seed+mpi_rnk)
      _loop_kmn_begin
@@ -252,9 +252,9 @@ _loop_mn_end
 
    subroutine var_randadd(c,scl)
      type (mpt), intent(inout) :: c
-     double precision, intent(in) :: scl
+     REAL(KIND=RKD), intent(in) :: scl
      integer,parameter :: seed = 86456
-     double precision :: r
+     REAL(KIND=RKD) :: r
      _loop_kmn_vars
      _loop_kmn_begin
      if ((n+var_N%pH0)==0) cycle
@@ -271,7 +271,7 @@ _loop_mn_end
    subroutine var_randmpt(c)
      type (mpt), intent(out) :: c
 !      integer,parameter :: seed = 82342
-      double precision :: r
+      REAL(KIND=RKD) :: r
       _loop_kmn_vars
       _loop_kmn_begin
       if ((n+var_N%pH0)==0) cycle
@@ -534,7 +534,7 @@ _loop_mn_end
 
   subroutine old_var_LHSRHS(l,r) 
    type (mpt), intent(out) :: l,r
-    double precision :: lap,hlap,tvl,ilap16
+    REAL(KIND=RKD) :: lap,hlap,tvl,ilap16
    _loop_kmn_vars
    _loop_k0mn_begin
    lap =(ad_m2(m)+ad_k2(k)+ad_n2(nn))
@@ -564,7 +564,7 @@ _loop_mn_end
 
   subroutine var_LHSRHS(l,r) 
    type (mpt), intent(out) :: l,r
-    double precision :: lap,hlap,tvl,ilap16
+    REAL(KIND=RKD) :: lap,hlap,tvl,ilap16
    _loop_kmn_vars
    _loop_k0mn_begin
    lap =(ad_m2(m)+ad_k2(k)+ad_n2(nn))

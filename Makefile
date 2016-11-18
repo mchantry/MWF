@@ -2,8 +2,8 @@ INSTDIR		= ./install/
 PROGDIR		= ./program/
 UTILDIR		= ./utils/
 UTIL		= seriesvtk
-#UTIL		= wholevtk
-UTIL		= quadX
+UTIL		= wholevtk
+UTIL		= fftwtest
 
 TRANSFORM	= fftw5
 MODES		= M4
@@ -17,10 +17,11 @@ MODSOBJ		= mpi.o parameters.o \
 #ADA COMPILATION
 COMPILER        = mpif90
 COMPFLAGS       = -ffree-line-length-none -x f95-cpp-input -c -O3 -mcmodel=large \
-	-I/network/aopp/cirrus/pred/sw/netcdf/4.3.3.1/gnu/463/include
+	-I/network/aopp/cirrus/pred/sw/netcdf/4.3.3.1/gnu/463/include \
+	-I/network/home/aopp/chantry/code/fftw/single/include
 LIBS            = -lm \
 	-L/network/aopp/cirrus/pred/sw/netcdf/4.3.3.1/gnu/463/lib -lnetcdff -lnetcdf \
-	-L/network/home/aopp/chantry/code/fftw/lib -lfftw3
+	-L/network/home/aopp/chantry/code/fftw/single/lib -lfftw3f
 #COMPILER        = mpiifort
 #COMPFLAGS       = -fpp -132 -c -O3 -mcmodel=medium -I/network/software/ubuntu_trusty/netcdf/3.6.3/include
 #LIBS            = -lm -L/network/software/ubuntu_trusty/netcdf/3.6.3/lib -lnetcdf
