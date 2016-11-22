@@ -156,10 +156,12 @@ PROGRAM MAIN
 #endif 
       end if
       
+
+      call clk_time(d_start)
+!      call io_save_state()
+      call io_write2files()
       call io_closefiles()
-       call clk_time(d_start)
-      call io_save_state()
-       call clk_time(d_stop)
+      call clk_time(d_stop)
 #ifdef _CPUTIME
        if(mpi_rnk==0)       print*, ' CPU savetime  = ', int((d_stop-d_start)/6d1), ' mins.'
 #else

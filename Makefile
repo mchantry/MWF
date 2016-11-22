@@ -4,6 +4,7 @@ UTILDIR		= ./utils/
 UTIL		= seriesvtk
 UTIL		= wholevtk
 UTIL		= fftwtest
+UTIL		= randIC
 
 TRANSFORM	= fftw5
 MODES		= M4
