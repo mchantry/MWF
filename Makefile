@@ -18,11 +18,13 @@ MODSOBJ		= mpi.o parameters.o \
 #ADA COMPILATION
 COMPILER        = mpif90
 COMPFLAGS       = -ffree-line-length-none -x f95-cpp-input -c -O3 -mcmodel=large \
-	-I/network/aopp/cirrus/pred/sw/netcdf/4.3.3.1/gnu/463/include \
-	-I/network/home/aopp/chantry/code/fftw/single/include
+	-I/network/aopp/cirrus/pred/sw/netcdf/4.3.3.1/gnu/492/include \
+	-I/network/home/aopp/chantry/code/fftw_cirrus/include \
+	-I/network/home/aopp/chantry/code/rpe_cirrus/modules
 LIBS            = -lm \
-	-L/network/aopp/cirrus/pred/sw/netcdf/4.3.3.1/gnu/463/lib -lnetcdff -lnetcdf \
-	-L/network/home/aopp/chantry/code/fftw/single/lib -lfftw3f
+	-L/network/aopp/cirrus/pred/sw/netcdf/4.3.3.1/gnu/492/lib -lnetcdff -lnetcdf \
+	-L/network/home/aopp/chantry/code/fftw_cirrus/lib -lfftw3 -lfftw3f \
+	-L/network/home/aopp/chantry/code/rpe_cirrus/lib -lrpe 
 #COMPILER        = mpiifort
 #COMPFLAGS       = -fpp -132 -c -O3 -mcmodel=medium -I/network/software/ubuntu_trusty/netcdf/3.6.3/include
 #LIBS            = -lm -L/network/software/ubuntu_trusty/netcdf/3.6.3/lib -lnetcdf

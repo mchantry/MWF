@@ -11,8 +11,12 @@
    implicit none
    save
    type tst
-      REAL(KIND=RKD)     :: Re(3,0:i_SN-1, 0:i_SMp-1,i_MT)
+      type(rpe_var)     :: Re(3,0:i_SN-1, 0:i_SMp-1,i_MT)
     end type tst
+
+   type iotst
+      real(KIND=RKD)     :: Re(3,0:i_SN-1, 0:i_SMp-1,i_MT)
+   end type iotst
    
    integer :: turb_save2 = 0
    type(tst) :: tdata
@@ -25,7 +29,7 @@
      type(phys), intent(in) :: ind
      _loop_mn_vars
      tdata%Re(:,:,:,2:i_MT)=tdata%Re(:,:,:,1:i_MT-1)
-     tdata%Re(:,:,:,1)=0d0
+     tdata%Re(:,:,:,1)=rp0
      do m=0,i_SMp-1
         do n=0,i_3N-1
            nn=FLOOR(dble(n)/dble(i_DN))
@@ -52,7 +56,6 @@
         tdata%Re(:,:,:,i_MT)=tdata%Re(:,:,:,i_MT)+tdata%Re(:,:,:,i)
      end do
      tdata%Re(:,:,:,i_MT)=tdata%Re(:,:,:,i_MT)/i_MT
-!     print*, tdata%Re(0:10,0,i_MT)
    end subroutine turb_prepare
 
 !--------------------------------------------------------------------------
@@ -67,13 +70,13 @@
       write(cnum,'(I4.4)') turb_save2!io_save2
 
       if(mpi_rnk==0) then
-         print*, ' saving turb'//cnum//'  t=', tim_t
+         print*, ' saving turb'//cnum//'  t=', tim_t%val
          e=nf90_create('turb'//cnum//'.cdf.dat', nf90_clobber, f)
 
-         e=nf90_put_att(f, nf90_global, 't', tim_t)
-         e=nf90_put_att(f, nf90_global, 'Re', d_Re)
-         e=nf90_put_att(f, nf90_global, 'alpha', d_alpha)
-         e=nf90_put_att(f, nf90_global, 'gamma', d_gamma)
+         e=nf90_put_att(f, nf90_global, 't', tim_t%val)
+         e=nf90_put_att(f, nf90_global, 'Re', d_Re%val)
+         e=nf90_put_att(f, nf90_global, 'alpha', d_alpha%val)
+         e=nf90_put_att(f, nf90_global, 'gamma', d_gamma%val)
 
          e=nf90_def_dim(f, 'N', i_SN, nd)
          e=nf90_def_dim(f, 'M', i_SM, md)
@@ -111,16 +114,19 @@
      integer,     intent(in) :: f, id
      type (tst), intent(in) :: a
      integer :: e
-     type (tst) :: c1
-     
-#ifndef _MPI
-      e=nf90_put_var(f,id,a%Re(1:3,0:i_SN-1,0:i_SM-1,10), start=(/1,1,1/))
-#else
+     type (iotst) :: c1
+     type (iotst) :: ioa
       integer :: r, pT0,pT1
+     
+     ioa%Re = a%Re(:,:,:,:)%val
+
+#ifndef _MPI
+      e=nf90_put_var(f,id,ioa%Re(1:3,0:i_SN-1,0:i_SM-1,10), start=(/1,1,1/))
+#else
       
       if(mpi_rnk==0) then
          pT1 = max((var_M%pH1+1)/i_DM - 1,0) 
-         e=nf90_put_var(f,id,a%Re(1:3,0:i_SN-1, 0:pT1,10), start=(/1,1,1/))
+         e=nf90_put_var(f,id,ioa%Re(1:3,0:i_SN-1, 0:pT1,10), start=(/1,1,1/))
       end if
       if (i_SM > 1) then
          if (mpi_rnk==0) then
@@ -135,7 +141,7 @@
          else
             mpi_tg = mpi_rnk
             pT1 = (var_M%pH1+1)/i_DM - 1
-           call mpi_send( a%Re(1,0,0,10), 3*i_SM*(pT1+1), mpi_real,  &
+           call mpi_send( ioa%Re(1,0,0,10), 3*i_SM*(pT1+1), mpi_real,  &
                  0, mpi_tg, mpi_comm_world, mpi_er)
          end if
       end if

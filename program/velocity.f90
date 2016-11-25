@@ -9,6 +9,8 @@ module velocity
   use variables
   use transform
   use modes
+  use rp_emulator
+
   implicit none
   save
   
@@ -113,9 +115,9 @@ contains
   end subroutine vel_nonlinear
   
   function epos(u) result(e)
-    REAL(KIND=RKD) :: e
-    REAL(KIND=RKD),intent(in) :: u(i_KK)
-    REAL(KIND=RKD) :: udotu(i_K0)
+    type(rpe_var) :: e
+    type(rpe_var),intent(in) :: u(i_KK)
+    type(rpe_var) :: udotu(i_K0)
     
     udotu = nluw(u(1:i_K0),u(1:i_K0))
     e = udotu(1)
@@ -126,10 +128,10 @@ contains
   end function epos
 
   function eposC(u) result(e)
-    REAL(KIND=RKD) :: e(3)
-    REAL(KIND=RKD),intent(in) :: u(i_KK)
-    REAL(KIND=RKD) :: udotu(i_K0)
-    REAL(KIND=RKD) :: t(i_KK)
+    type(rpe_var) :: e(3)
+    type(rpe_var),intent(in) :: u(i_KK)
+    type(rpe_var) :: udotu(i_K0)
+    type(rpe_var) :: t(i_KK)
     t=u
 !    t(1) = 0d0
 !    t(2*i_K0) = 0d0
@@ -143,30 +145,32 @@ contains
 
   subroutine vel_energy(a,e)
     type (phys), intent(in) :: a
-    REAL(KIND=RKD), intent(out) :: e
-    REAL(KIND=RKD) :: e_
+    type(rpe_var), intent(out) :: e
+    real(kind=RKD) :: er,er_
     _loop_mn_vars
     e=0
     _loop_phy_begin
     e = e + epos(a%Re(:,n,m))
     _loop_mn_end
+    er = e%val
 #ifdef _MPI
-    call mpi_allreduce( e, e_, 1, mpi_real,  &
+    call mpi_allreduce( er, er_, 1, mpi_real,  &
          mpi_sum, mpi_comm_world, mpi_er)
     if(mpi_rnk/=0) return
-    e = e_
+    er = er_
 #endif
 !    e = e * d_alpha * d_gamma /( 4 * d_PI * d_PI * i_3M * i_3N) 
-    e = e /( i_3M * i_3N) 
+    er = er /( i_3M * i_3N) 
+    e%val = er
 
   end subroutine vel_energy
 
     subroutine vel_history(V,y,ans)
     
     type(phys), intent(in) :: V
-    REAL(KIND=RKD), intent(out) :: ans(4,i_H)
+    type(rpe_var), intent(out) :: ans(4,i_H)
     integer :: j,ji
-    REAL(KIND=RKD),intent(in) :: y
+    type(rpe_var),intent(in) :: y
 
     if(mpi_rnk/=0) return 
     do j=1,i_H

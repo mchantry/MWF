@@ -9,6 +9,7 @@
    use mpif
    use netcdf
    use turb
+   use rp_emulator
    implicit none
    save
 
@@ -134,19 +135,22 @@
       end if
 
       e=nf90_get_att(f,nf90_global,'t', d)
-      if(d_time<0.0_RKD) tim_t = d
+      if(d_time<rp0) then
+         tim_t%val = d
+         call apply_truncation(tim_t)
+      end if
       if(mpi_rnk==0 .and. abs(tim_t-d)>1d-5)  &
-         print*,' t    :',d,' --> ', tim_t
+         print*,' t    :',d,' --> ', tim_t%val
 
       e=nf90_get_att(f,nf90_global,'Re', d)
       if(mpi_rnk==0 .and. abs(d_Re-d)>1d-5)  &
-         print*,' Re   :',d,' --> ', d_Re
+         print*,' Re   :',d,' --> ', d_Re%val
       e=nf90_get_att(f,nf90_global,'alpha', d)
       if(mpi_rnk==0 .and. abs(d_alpha-d)>1d-5)  &
-         print*,' alpha:',d,' --> ', d_alpha
+         print*,' alpha:',d,' --> ', d_alpha%val
       e=nf90_get_att(f,nf90_global,'gamma', d)
       if(mpi_rnk==0 .and. abs(d_gamma-d)>1d-5)  &
-         print*,' gamma:',d,' --> ', d_gamma
+         print*,' gamma:',d,' --> ', d_gamma%val
 
       call io_load_mpt(f,'mpt',vel_c)
 
@@ -165,10 +169,11 @@
       integer,          intent(in)  :: f
       character(*),     intent(in)  :: nm
       type (mpt),      intent(out) :: a
-      integer :: N1,M1, mm_,mm,nn,e,i
-      integer :: K__, M__, N__,K1,K2
-      integer :: m,n
+      type(iompt) :: ioa
+      integer :: N1,M1, mm_,e,i
+      integer :: K__, M__, N__
       logical :: error=.false.
+
           
       e=nf90_inq_varid(f,nm, i)
       if(e/=nf90_noerr)  print*, 'Field '//nm//' not found!'
@@ -193,61 +198,15 @@
          stop 'wrong state size'
       end if
       
-      a%Re = 0.0_RKD
-      a%Im = 0.0_RKD
+      a%Re = rp0
+      a%Im = rp0
 
-      e=nf90_get_var(f,i, a%Re(:,:,:),start=(/1,1,var_N%pH0+1,1/))
-      e=nf90_get_var(f,i, a%Im(:,:,:),start=(/1,1,var_N%pH0+1,2/))
+      e=nf90_get_var(f,i, ioa%Re(:,:,:),start=(/1,1,var_N%pH0+1,1/))
+      e=nf90_get_var(f,i, ioa%Im(:,:,:),start=(/1,1,var_N%pH0+1,2/))
+      call var_mpt_io2r(ioa,a)      
       
     end subroutine io_load_mpt
 
-   subroutine io_load_mpt_old(f,nm, a)
-      integer,          intent(in)  :: f
-      character(*),     intent(in)  :: nm
-      type (mpt),      intent(out) :: a
-      integer :: N1,M1, mm_,mm,nn,e,i
-      integer :: K__, M__, N__,K1,K2
-      integer :: m,n
-          
-      e=nf90_inq_varid(f,nm, i)
-      if(e/=nf90_noerr)  print*, 'Field '//nm//' not found!'
-      if(e/=nf90_noerr)  stop 'io_load_coll'
-      e=nf90_get_att(f,i, 'K',  K__)
-      e=nf90_get_att(f,i, 'MM',  M__)
-      e=nf90_get_att(f,i, 'NN',  N__)
-      if(mpi_rnk==0) then
-         if(K__ /=i_K)  print*, nm, ' K :', K__, ' --> ',i_K 
-         if(M__ /=i_MM)  print*, nm, ' MM :', M__, ' --> ',i_MM 
-         if(N__ /=i_NN)  print*, nm, ' NN :', N__,' --> ',i_NN 
-      end if
-
-      a%Re = 0.0_RKD
-      a%Im = 0.0_RKD
-
-      N1 = min(N__,i_NN)-1
-      M1 = min(M__,i_MM)-1
-      K1 = min(i_K0,(K__+1)/2)
-      K2 = (K__+1)/2+1
-      do n = 0, N__-1 
-         if(n<var_N%pH0 .or. n>var_N%pH0+var_N%pH1)  cycle
-         nn = n - var_N%pH0
-!         print*,n,mpi_rnk,nn
-         do m = -M__,M__
-            if (abs(m) > i_MM1) cycle
-            mm_ = modulo(m,2*(M__-1))
-            mm  = modulo(m,i_M)
-            if (i_K == K__) then
-               e=nf90_get_var(f,i, a%Re(1:i_K,mm,nn),start=(/1,mm_+1,n+1,1/))
-               e=nf90_get_var(f,i, a%Im(1:i_K,mm,nn),start=(/1,mm_+1,n+1,2/))
-            else 
-               e=nf90_get_var(f,i, a%Re(1:K1,mm,nn)            ,start=(/1,mm_+1,n+1,1/))
-               e=nf90_get_var(f,i, a%Re(i_K0+1:i_K0+K1-1,mm,nn),start=(/K2,mm_+1,n+1,1/))
-               e=nf90_get_var(f,i, a%Im(1:K1,mm,nn)            ,start=(/1,mm_+1,n+1,2/))
-               e=nf90_get_var(f,i, a%Im(i_K0+1:i_K0+K1-1,mm,nn),start=(/K2,mm_+1,n+1,2/))
-            end if
-         end do
-      end do
-    end subroutine io_load_mpt_old
 
 !--------------------------------------------------------------------------
 !  Save state
@@ -261,13 +220,13 @@
       write(cnum,'(I4.4)') io_save1
 
       if(mpi_rnk==0) then
-         print*, ' saving state'//cnum//'  t=', tim_t
+         print*, ' saving state'//cnum//'  t=', tim_t%val
          e=nf90_create('state'//cnum//'.cdf.dat', nf90_clobber, f)
 
-         e=nf90_put_att(f, nf90_global, 't', tim_t)
-         e=nf90_put_att(f, nf90_global, 'Re', d_Re)
-         e=nf90_put_att(f, nf90_global, 'alpha', d_alpha)
-         e=nf90_put_att(f, nf90_global, 'gamma', d_gamma)
+         e=nf90_put_att(f, nf90_global, 't', tim_t%val)
+         e=nf90_put_att(f, nf90_global, 'Re', d_Re%val)
+         e=nf90_put_att(f, nf90_global, 'alpha', d_alpha%val)
+         e=nf90_put_att(f, nf90_global, 'gamma', d_gamma%val)
 
          e=nf90_def_dim(f, 'N', i_NN, nd)
          e=nf90_def_dim(f, 'M', i_M, md)
@@ -304,18 +263,21 @@
    subroutine io_save_mpt(f,id,a)
       integer,     intent(in) :: f, id
       type (mpt), intent(in) :: a
+      type (iompt) :: ioa,c1
       integer :: e
-      
+      integer :: r, pN0,pN1
+_loop_kmn_vars
+
+      call var_mpt_r2io(a,ioa)
+
 #ifndef _MPI
-      e=nf90_put_var(f,id,a%Re(1:i_K,0:i_M1,0:i_NN1), start=(/1,1,1,1/))
-      e=nf90_put_var(f,id,a%Im(1:i_K,0:i_M1,0:i_NN1), start=(/1,1,1,2/))
+      e=nf90_put_var(f,id,ioa%Re(1:i_K,0:i_M1,0:i_NN1), start=(/1,1,1,1/))
+      e=nf90_put_var(f,id,ioa%Im(1:i_K,0:i_M1,0:i_NN1), start=(/1,1,1,2/))
 
 #else
-      integer :: r, pN0,pN1
-
       if(mpi_rnk==0) then
-         e=nf90_put_var(f,id,a%Re(1:i_K,0:i_M1,0:var_N%pH1), start=(/1,1,1,1/))
-         e=nf90_put_var(f,id,a%Im(1:i_K,0:i_M1,0:var_N%pH1), start=(/1,1,1,2/))         
+         e=nf90_put_var(f,id,ioa%Re(1:i_K,0:i_M1,0:var_N%pH1), start=(/1,1,1,1/))
+         e=nf90_put_var(f,id,ioa%Im(1:i_K,0:i_M1,0:var_N%pH1), start=(/1,1,1,2/))         
          do r = 1, mpi_sze-1
             pN0 = var_N%pH0_(r)
             pN1 = var_N%pH1_(r)
@@ -329,9 +291,9 @@
          end do
       else
          mpi_tg = mpi_rnk
-         call mpi_send( a%Re(1,0,0), i_M*(var_N%pH1+1)*i_K, mpi_real,  &
+         call mpi_send( ioa%Re(1,0,0), i_M*(var_N%pH1+1)*i_K, mpi_real,  &
             0, mpi_tg, mpi_comm_world, mpi_er)
-         call mpi_send( a%Im(1,0,0), i_M*(var_N%pH1+1)*i_K, mpi_real,  &
+         call mpi_send( ioa%Im(1,0,0), i_M*(var_N%pH1+1)*i_K, mpi_real,  &
             0, mpi_tg, mpi_comm_world, mpi_er)
       end if
 #endif      
@@ -358,8 +320,8 @@
      mm = m
      if (m > i_MM1) mm = i_M - m
      do k=1,i_KK
-        dRe=tmp%Re(k,m,n)
-        dIm=tmp%Im(k,m,n) 
+        dRe=tmp%Re(k,m,n)%val
+        dIm=tmp%Im(k,m,n)%val 
         d = sqrt(dRe*dRe+dIm*dIm)
         n_(nn)  = max(d, n_(nn))
         m_(mm)  = max(d, m_(mm))
@@ -411,8 +373,8 @@
       mm = m
       if (m > i_MM1) mm = i_M - m
 !      print*,mpi_rnk,k,mm,nn
-      dRe=vel_c%Re(k,m,n)
-      dIm=vel_c%Im(k,m,n) 
+      dRe=vel_c%Re(k,m,n)%val
+      dIm=vel_c%Im(k,m,n)%val 
       d = sqrt(dRe*dRe+dIm*dIm)
       n_(nn)  = max(d, n_(nn))
       m_(mm)  = max(d, m_(mm))
@@ -450,14 +412,14 @@
 !--------------------------------------------------------------------------
    subroutine io_write_energy(sp)
       type (phys), intent(in) :: sp
-      REAL(KIND=RKD) :: E
+      type(rpe_var) :: E
 
       call vel_energy(sp,E)
       
       if(mpi_rnk/=0) return
-      write(io_KE,'(2e20.12)')  tim_t, E
+      write(io_KE,'(2e20.12)')  tim_t%val, E%val
       
-      if(E>d_minE .or. tim_t<20.0_RKD) return
+      if(E>d_minE) return
       print*, 'io_write_energy: Relaminarised!'
       open(99,file=oloc)
       close(99, status='delete')
@@ -469,22 +431,23 @@
 !--------------------------------------------------------------------------
    subroutine io_write_history(sp)
       type (phys), intent(in) :: sp
-      REAL(KIND=RKD) :: H(4,i_H)
+      type(rpe_var) :: H(4,i_H)
       integer :: i
 
       if(mpi_rnk/=0) return
-      call vel_history(sp,0.0_RKD,H)
+      call vel_history(sp,rp0,H)
       do i=1,i_H
-         write(io_HI,'(6e20.12)')  tim_t, 0.0_RKD,H(1,i),H(2,i),H(3,i),H(4,i)
+         write(io_HI,'(6e20.12)')  tim_t%val, 0.0_RKD,H(1,i)%val,H(2,i)%val,H(3,i)%val,H(4,i)%val
       end do
 
    end subroutine io_write_history
 
+!MJC 22/11 RPE done up to here.
 
    Subroutine io_writeVTK_xz(V,y,cnum,xs,zs)
   
      type(phys),intent(in) :: V
-     REAL(KIND=RKD), intent(in) :: y
+     type(rpe_var), intent(in) :: y
      integer, optional :: xs,zs
      character(4) :: cnum
      integer :: io,ix,iz,M_,N_
@@ -621,7 +584,7 @@
      integer, optional :: xs,zs
      character(4) :: cnum
      integer :: io,ix,iy,iz,M_,N_
-     REAL(KIND=RKD) :: y
+     type(rpe_var) :: y
      character(10) :: s = 'unknown', a = 'sequential'
      
      if (.not. present(zs)) then
