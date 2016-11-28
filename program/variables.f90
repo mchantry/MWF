@@ -3,32 +3,25 @@
 !*************************************************************************
    use mpif
    use parameters
-   use rp_emulator
-
    implicit none
    save
    type phys
-      type(rpe_var)     :: Re(i_KK,0:i_3N-1, 0:i_Mp-1)
+      REAL(KIND=RKD)     :: Re(i_KK,0:i_3N-1, 0:i_Mp-1)
    end type phys
    
    type mpt
-      type(rpe_var)     :: Re(i_K,0:i_M1, 0:i_Np-1)
-      type(rpe_var)     :: Im(i_K,0:i_M1, 0:i_Np-1)
+      REAL(KIND=RKD)     :: Re(i_K,0:i_M1, 0:i_Np-1)
+      REAL(KIND=RKD)     :: Im(i_K,0:i_M1, 0:i_Np-1)
    end type mpt 
 
-   type iompt
-      REAL(KIND=RKD)    :: Re(i_K,0:i_M1, 0:i_Np-1)
-      REAL(KIND=RKD)    :: Im(i_K,0:i_M1, 0:i_Np-1)
-   end type iompt 
-
    type spec
-      type(rpe_var)     :: Re(i_KK,0:i_M1, 0:i_Np-1)
-      type(rpe_var)     :: Im(i_KK,0:i_M1, 0:i_Np-1)
+      REAL(KIND=RKD)     :: Re(i_KK,0:i_M1, 0:i_Np-1)
+      REAL(KIND=RKD)     :: Im(i_KK,0:i_M1, 0:i_Np-1)
    end type spec
    
    type tran
-      type(rpe_var)     :: Re(i_KK,0:i_NN1, 0:i_Mp-1)
-      type(rpe_var)     :: Im(i_KK,0:i_NN1, 0:i_Mp-1)
+      REAL(KIND=RKD)     :: Re(i_KK,0:i_NN1, 0:i_Mp-1)
+      REAL(KIND=RKD)     :: Im(i_KK,0:i_NN1, 0:i_Mp-1)
    end type tran
 
    type harm
@@ -37,35 +30,14 @@
 
 
    type (harm)               :: var_M,var_N
-   type(rpe_var), private :: ad_n2(0:i_NN1)
-   type(rpe_var), private :: ad_n1(0:i_NN1)
-   type(rpe_var), private :: ad_m1(0:i_M1)
-   type(rpe_var), private :: ad_m2(0:i_M1)
-   type(rpe_var), private :: ad_k1(0:i_K0-1)
-   type(rpe_var), private :: ad_k2(0:i_K0-1)
+   REAL(KIND=RKD), private :: ad_n2(0:i_NN1)
+   REAL(KIND=RKD), private :: ad_n1(0:i_NN1)
+   REAL(KIND=RKD), private :: ad_m1(0:i_M1)
+   REAL(KIND=RKD), private :: ad_m2(0:i_M1)
+   REAL(KIND=RKD), private :: ad_k1(0:i_K0-1)
+   REAL(KIND=RKD), private :: ad_k2(0:i_K0-1)
 
  contains
-
-   subroutine var_mpt_r2io(a,b)
-     type (mpt), intent(in) :: a
-     type (iompt), intent(out) :: b
-     _loop_kmn_vars
-     _loop_kmn_begin
-     b%Re(k,m,n)=a%Re(k,m,n)%val
-     _loop_kmn_end
-   end subroutine var_mpt_r2io
-
-   subroutine var_mpt_io2r(b,a)
-     type (mpt), intent(out) :: a
-     type (iompt), intent(in) :: b
-     _loop_kmn_vars
-     _loop_kmn_begin
-     a%Re(k,m,n)%val=b%Re(k,m,n)
-     a%Im(k,m,n)%val=b%Im(k,m,n)
-     call apply_truncation(a%Re(k,m,n))
-     call apply_truncation(a%Im(k,m,n))
-     _loop_kmn_end
-   end subroutine var_mpt_io2r
 
    subroutine var_uvreflect(c)
      type (mpt), intent(inout) :: c
@@ -160,7 +132,7 @@
 
    subroutine var_maskmpt(c)
       type (mpt), intent(inout) :: c
-      type(rpe_var) :: mval,mn
+      REAL(KIND=RKD) :: mval,mn
    _loop_mn_vars
    _loop_mn_begin
       mm = m
@@ -175,7 +147,7 @@
    subroutine var_doubleX(c)
       type (mpt), intent(inout) :: c
       type (mpt) :: tmp
-      type(rpe_var) :: mval,mn
+      REAL(KIND=RKD) :: mval,mn
 _loop_mn_vars
       call var_mpt_init(tmp)
 _loop_mn_begin
@@ -195,7 +167,7 @@ _loop_mn_end
    subroutine var_quadX(c)
       type (mpt), intent(inout) :: c
       type (mpt) :: tmp
-      type(rpe_var) :: mval,mn
+      REAL(KIND=RKD) :: mval,mn
 _loop_mn_vars
       call var_mpt_init(tmp)
 _loop_mn_begin
@@ -261,7 +233,7 @@ _loop_mn_end
    subroutine var_randspec(c)
      type (spec), intent(out) :: c
      integer,parameter :: seed = 86456
-     type(rpe_var) :: r
+     REAL(KIND=RKD) :: r
      _loop_kmn_vars
      !         call srand(seed+mpi_rnk)
      _loop_kmn_begin
@@ -269,30 +241,29 @@ _loop_mn_end
      if ((n+var_N%pH0)==0) cycle
      if (nn==i_NN1) cycle
      if (m==0) cycle
-     call RANDOM_NUMBER(r%val)
-     c%Re(k,m,n)=r
+     call RANDOM_NUMBER(r)
+     c%Re(k,m,n)=r!RAND()
      if (m==0) cycle
      if (n+var_N%pH0==0) cycle
-     call RANDOM_NUMBER(r%val)
-     c%Im(k,m,n)=r
+     call RANDOM_NUMBER(r)
+     c%Im(k,m,n)=r!RAND()
      _loop_kmn_end
    end subroutine var_randspec
 
    subroutine var_randadd(c,scl)
      type (mpt), intent(inout) :: c
-     type(rpe_var), intent(in) :: scl
+     REAL(KIND=RKD), intent(in) :: scl
      integer,parameter :: seed = 86456
-     type(rpe_var) :: r
+     REAL(KIND=RKD) :: r
      _loop_kmn_vars
      _loop_kmn_begin
      if ((n+var_N%pH0)==0) cycle
      if (m==0) cycle
-     call RANDOM_NUMBER(r%val)
-     
+     call RANDOM_NUMBER(r)
      c%Re(k,m,n)=c%Re(k,m,n)+scl*r
      if (m==0) cycle
      if (n+var_N%pH0==0) cycle
-     call RANDOM_NUMBER(r%val)
+     call RANDOM_NUMBER(r)
      c%Im(k,m,n)=c%Im(k,m,n)+scl*r
      _loop_kmn_end
    end subroutine var_randadd
@@ -300,17 +271,17 @@ _loop_mn_end
    subroutine var_randmpt(c)
      type (mpt), intent(out) :: c
 !      integer,parameter :: seed = 82342
-      real :: r
+      REAL(KIND=RKD) :: r
       _loop_kmn_vars
       _loop_kmn_begin
       if ((n+var_N%pH0)==0) cycle
       if (m==0) cycle
       call RANDOM_NUMBER(r)
-      c%Re(k,m,n)=rpe_literal(r,i_nb)!RAND()
+      c%Re(k,m,n)=r!RAND()
       if (m==0) cycle
       if (n+var_N%pH0==0) cycle
       call RANDOM_NUMBER(r)
-      c%Im(k,m,n)=rpe_literal(r,i_nb)!RAND()
+      c%Im(k,m,n)=r!RAND()
       _loop_kmn_end
     end subroutine var_randmpt
     
@@ -563,7 +534,7 @@ _loop_mn_end
 
   subroutine old_var_LHSRHS(l,r) 
    type (mpt), intent(out) :: l,r
-    type(rpe_var) :: lap,hlap,tvl,ilap16
+    REAL(KIND=RKD) :: lap,hlap,tvl,ilap16
    _loop_kmn_vars
    _loop_k0mn_begin
    lap =(ad_m2(m)+ad_k2(k)+ad_n2(nn))
@@ -593,7 +564,7 @@ _loop_mn_end
 
   subroutine var_LHSRHS(l,r) 
    type (mpt), intent(out) :: l,r
-    type(rpe_var) :: lap,hlap,tvl,ilap16
+    REAL(KIND=RKD) :: lap,hlap,tvl,ilap16
    _loop_kmn_vars
    _loop_k0mn_begin
    lap =(ad_m2(m)+ad_k2(k)+ad_n2(nn))

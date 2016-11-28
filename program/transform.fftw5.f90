@@ -14,7 +14,6 @@
    use variables
    use mpif
    use FFTW3
-   use rp_emulator
 !   include 'fftw3.f03'
 
    implicit none
@@ -22,13 +21,13 @@
    !i_NN = (i_N /2 + 1)
    !i_Na = (i_3N/2 + 1) = (3*i_NN)/2 + 1
    integer, parameter, private :: i_Na = i_3N/2 !+ 1!(3*i_NN)/2 != 3*(i_N/2 + 1)/2
-   complex(KIND=RKD),     private :: state_inp(i_KK,0:i_3M-1)!,state_res(i_KK,0:i_3M-1)
-   complex(KIND=RKD),     private :: state_mid(i_KK,0:i_Na)
-   REAL(KIND=RKD),private :: state_phy(i_KK,0:i_3N-1)
+   complex,     private :: state_inp(i_KK,0:i_3M-1)!,state_res(i_KK,0:i_3M-1)
+   complex,     private :: state_mid(i_KK,0:i_Na)
+   REAL(KIND=RKD),   private :: state_phy(i_KK,0:i_3N-1)
 !   integer*8,          private :: plan_inp2mid, plan_mid2inp, plan_mid2phy, plan_phy2mid
    TYPE(c_ptr), private :: plan_inp2mid, plan_mid2inp, plan_mid2phy, plan_phy2mid
-   complex(KIND=RKD),     private ::  T(i_KK,0:i_3M-1,0:i_Np-1)
-   complex(KIND=RKD),     private :: Ts(i_KK,0:i_NN1,0:i_Mp-1)
+   complex,     private ::  T(i_KK,0:i_3M-1,0:i_Np-1)
+   complex,     private :: Ts(i_KK,0:i_NN1,0:i_Mp-1)
 
  contains
 
@@ -43,11 +42,11 @@
       inembed = (/i_3M/) 
       istride=i_KK
       sgn=1
-      plan_inp2mid = fftw_plan_many_dft(1, n, howmany,&
+      plan_inp2mid = fftwf_plan_many_dft(1, n, howmany,&
             state_inp, inembed, istride, &
             1,  state_inp, inembed, istride, 1, sgn, flag) !To Real transform
       sgn=-1
-      plan_mid2inp = fftw_plan_many_dft(1, n, howmany,&
+      plan_mid2inp = fftwf_plan_many_dft(1, n, howmany,&
             state_inp, inembed, istride, &
             1,  state_inp, inembed, istride, 1, sgn, flag) !To Real transform
 
@@ -56,9 +55,9 @@
       inembed = (/i_Na+1/)!i_Na+1 
       ouembed = (/i_3N/) 
       istride=i_KK
-      plan_mid2phy = fftw_plan_many_dft_c2r(1, n, howmany,state_mid, inembed, istride, &
+      plan_mid2phy = fftwf_plan_many_dft_c2r(1, n, howmany,state_mid, inembed, istride, &
          1,  state_phy, ouembed, istride, 1, flag) !To Real transform
-      plan_phy2mid = fftw_plan_many_dft_r2c(1, n, howmany,state_phy, ouembed, istride, &
+      plan_phy2mid = fftwf_plan_many_dft_r2c(1, n, howmany,state_phy, ouembed, istride, &
          1,  state_mid, inembed, istride, 1, flag) !To Real transform
 
    end subroutine tra_precompute
@@ -76,19 +75,18 @@
          do m = -(i_M-i_MM),i_MM1
             mm=modulo(m,i_3M)
             ms=modulo(m,i_M)
-            state_inp(:,mm)=cmplx(s%Re(:,ms,n)%val,s%Im(:,ms,n)%val)
+            state_inp(:,mm)=cmplx(s%Re(:,ms,n),s%Im(:,ms,n))
          end do
-         call fftw_execute_dft(plan_inp2mid,state_inp,state_inp)
+         call fftwf_execute_dft(plan_inp2mid,state_inp,state_inp)
          T(:,:,n)=state_inp   
       end do
       call tra_T2Ts()
       do m = 0,var_M%pH1
          state_mid(:,i_NN:)=0d0
          state_mid(:,0:i_NN1)=Ts(:,:,m)
-         call fftw_execute_dft_c2r(plan_mid2phy,state_mid,state_phy)
-         p%Re(:,:,m)%val = state_phy
+         call fftwf_execute_dft_c2r(plan_mid2phy,state_mid,state_phy)
+         p%Re(:,:,m) = state_phy
       end do
-      call apply_truncation(p%Re)
 
    end subroutine tra_spec2phys
 
@@ -104,24 +102,22 @@
             mm=modulo(m,i_3M)
             ms=modulo(m,i_M)
             if (n==1) print*,m,mm,ms
-            state_inp(:,mm)=cmplx(s%Re(:,ms,n)%val,s%Im(:,ms,n)%val)
+            state_inp(:,mm)=cmplx(s%Re(:,ms,n),s%Im(:,ms,n))
          end do
          if (n==1) print*,'BEFORE _-----------------'
          if (n==1) print*, real(state_inp(1,:))
-         call fftw_execute_dft(plan_inp2mid,state_inp,state_inp)
+         call fftwf_execute_dft(plan_inp2mid,state_inp,state_inp)
          state_inp=state_inp/(i_3M)
          if (n==1) print*,'AFTER --------------------'
-         call fftw_execute_dft(plan_mid2inp,state_inp,state_inp)
+         call fftwf_execute_dft(plan_mid2inp,state_inp,state_inp)
          if (n==1) print*, real(state_inp(1,:))
          do m = - (i_M - i_MM),i_MM1
             mm = modulo(m,i_3M)
             ms = modulo(m,i_M)
-            s%Re(:,ms,n)%val=real(state_inp(:,mm))
-            s%Im(:,ms,n)%val=imag(state_inp(:,mm))
+            s%Re(:,ms,n)= real(state_inp(:,mm))
+            s%Im(:,ms,n)=imag(state_inp(:,mm))
          end do
       end do
-      call apply_truncation(s%Re)
-      call apply_truncation(s%Im)
    end subroutine tra_spectest
 
 
@@ -133,26 +129,24 @@
       type (phys), intent(in) :: p
       integer :: n,m,mm,ms
       REAL(KIND=RKD) :: scale_
-      ! scale, FFTW 4.7.2
+                  ! scale, FFTW 4.7.2
       scale_ = 1d0 / real(i_3M*i_3N)
       do m = 0,var_M%pH1
-         state_phy = scale_ * p%Re(:,:,m)%val
-         call fftw_execute_dft_r2c(plan_phy2mid,state_phy,state_mid)
+         state_phy = scale_ * p%Re(:,:,m)
+         call fftwf_execute_dft_r2c(plan_phy2mid,state_phy,state_mid)
          Ts(:,:,m) = state_mid(:,0:i_NN1)
       end do
       call tra_Ts2T
       do n = 0,var_N%pH1
          state_inp = T(:,:,n)
-         call fftw_execute_dft(plan_mid2inp,state_inp,state_inp)
+         call fftwf_execute_dft(plan_mid2inp,state_inp,state_inp)
          do m = - (i_M - i_MM),i_MM1
             mm = modulo(m,i_3M)
             ms = modulo(m,i_M)
-            s%Re(:,ms,n)%val= real(state_inp(:,mm))
-            s%Im(:,ms,n)%val=imag(state_inp(:,mm))
+            s%Re(:,ms,n)= real(state_inp(:,mm))
+            s%Im(:,ms,n)=imag(state_inp(:,mm))
          end do
       end do
-      call apply_truncation(s%Re)
-      call apply_truncation(s%Im)
    end subroutine tra_phys2spec
 
 !------------------------------------------------------------------------

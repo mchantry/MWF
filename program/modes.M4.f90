@@ -6,15 +6,14 @@
 module modes
   !*************************************************************************
   use parameters
-  use rp_emulator
   implicit none
   save
   
 contains
 
   function udotgradu(v,vx,vz) result(ans)
-    type(rpe_var) :: ans(i_KK)
-    type(rpe_var),intent(in) :: v(i_KK),vx(i_KK),vz(i_KK)
+    REAL(KIND=RKD) :: ans(i_KK)
+    REAL(KIND=RKD),intent(in) :: v(i_KK),vx(i_KK),vz(i_KK)
     ans(1) =v(1)*vx(1) + (v(2)*vx(2))/2 + (v(3)*vx(3))/2 + (v(4)*vx(4))/2 + v(8)*vz(1) + (v(9)*vz(2))/2 + (v(10)*vz(3))/2 + (v(11)*vz(4))/2 + (d_beta*v(2)*v(5))/2 - d_beta*v(3)*v(6) + (3*d_beta*v(4)*v(7))/2
     ans(2) =v(1)*vx(2) + v(2)*vx(1) - (v(2)*vx(3))/2 - (v(3)*vx(2))/2 + (v(3)*vx(4))/2 + (v(4)*vx(3))/2 + v(8)*vz(2) + v(9)*vz(1) - (v(9)*vz(3))/2 - (v(10)*vz(2))/2 + (v(10)*vz(4))/2 + (v(11)*vz(3))/2 + (d_beta*v(2)*v(6))/2 - d_beta*v(3)*v(5) + d_beta*v(3)*v(7) - (3*d_beta*v(4)*v(6))/2
     ans(3) =v(1)*vx(3) - (v(2)*vx(2))/2 + v(3)*vx(1) + (v(2)*vx(4))/2 + (v(4)*vx(2))/2 + v(8)*vz(3) - (v(9)*vz(2))/2 + v(10)*vz(1) + (v(9)*vz(4))/2 + (v(11)*vz(2))/2 + (d_beta*v(2)*v(5))/2 + (d_beta*v(2)*v(7))/2 + (3*d_beta*v(4)*v(5))/2
@@ -29,16 +28,16 @@ contains
   end function udotgradu
 
   function udotgradu2(u,ux,uz) result(ans)
-    type(rpe_var) :: ans(i_KK)
-    type(rpe_var),intent(in) :: u(i_KK),ux(i_KK),uz(i_KK)
+    REAL(KIND=RKD) :: ans(i_KK)
+    REAL(KIND=RKD),intent(in) :: u(i_KK),ux(i_KK),uz(i_KK)
     ans(1:i_K0)= nluw(u(1:i_K0),ux(1:i_K0)) + nluyv(u(1:i_K0),u(i_K0+1:2*i_K0-1)) + nluw(u(2*i_K0:i_KK),uz(1:i_K0))
     ans(i_K0+1:2*i_K0-1)= nluv(u(1:i_K0),ux(i_K0+1:2*i_K0-1)) + nlvvy(u(i_K0+1:2*i_K0-1))        + nluv(u(2*i_K0:i_KK),uz(i_K0+1:2*i_K0-1))
     ans(2*i_K0:i_KK)=nluw(u(1:i_K0),ux(2*i_K0:i_KK))+ nluyv(u(2*i_K0:i_KK),u(i_K0+1:2*i_K0-1))+ nluw(u(2*i_K0:i_KK),uz(2*i_K0:i_KK))
   end function udotgradu2
   
   function nluw(u,w) result(ans)
-    type(rpe_var) :: ans(0:i_K1)
-    type(rpe_var),intent(in) :: u(0:i_K1),w(0:i_K1)
+    REAL(KIND=RKD) :: ans(0:i_K1)
+    REAL(KIND=RKD),intent(in) :: u(0:i_K1),w(0:i_K1)
     ans(0)=u(0)*w(0) + (u(1)*w(1))/2 + (u(2)*w(2))/2 + (u(3)*w(3))/2
     ans(1)=u(0)*w(1) + u(1)*w(0) - (u(1)*w(2))/2 - (u(2)*w(1))/2 + (u(2)*w(3))/2 + (u(3)*w(2))/2	
     ans(2)=u(0)*w(2) - (u(1)*w(1))/2 + u(2)*w(0) + (u(1)*w(3))/2 + (u(3)*w(1))/2
@@ -47,8 +46,8 @@ contains
   end function nluw
 
   function nluyv(u,v) result(ans)
-    type(rpe_var) :: ans(0:i_K1)
-    type(rpe_var),intent(in) :: u(0:i_K1),v(1:i_K1)
+    REAL(KIND=RKD) :: ans(0:i_K1)
+    REAL(KIND=RKD),intent(in) :: u(0:i_K1),v(1:i_K1)
     ans(0)=(d_beta*u(1)*v(1))/2 - d_beta*u(2)*v(2) + (3*d_beta*u(3)*v(3))/2
     ans(1)=(d_beta*u(1)*v(2))/2 - d_beta*u(2)*v(1) + d_beta*u(2)*v(3) - (3*d_beta*u(3)*v(2))/2
     ans(2)=(d_beta*u(1)*v(1))/2 + (d_beta*u(1)*v(3))/2 + (3*d_beta*u(3)*v(1))/2
@@ -57,32 +56,32 @@ contains
   end function nluyv
   
   function nluv(u,v) result(ans)
-    type(rpe_var) :: ans(1:i_K1)
-    type(rpe_var),intent(in) :: u(0:i_K1),v(1:i_K1)
+    REAL(KIND=RKD) :: ans(1:i_K1)
+    REAL(KIND=RKD),intent(in) :: u(0:i_K1),v(1:i_K1)
     ans(1)=u(0)*v(1) + (u(1)*v(2))/2 + (u(2)*v(1))/2 + (u(2)*v(3))/2 + (u(3)*v(2))/2
     ans(2)=u(0)*v(2) + (u(1)*v(1))/2 - (u(1)*v(3))/2 + (u(3)*v(1))/2
     ans(3)=u(0)*v(3) - (u(1)*v(2))/2 + (u(2)*v(1))/2
   end function nluv
   
   function nlvvy(v) result(ans)
-    type(rpe_var) :: ans(1:i_K1)
-    type(rpe_var),intent(in) :: v(1:i_K1)
+    REAL(KIND=RKD) :: ans(1:i_K1)
+    REAL(KIND=RKD),intent(in) :: v(1:i_K1)
     ans(1)=(d_beta*v(1)*v(2))/2 - (d_beta*v(2)*v(3))/2
     ans(2)=- (d_beta*v(1)**2)/2 - d_beta*v(1)*v(3)
     ans(3)=(3*d_beta*v(1)*v(2))/2
   end function nlvvy
   
   function nlvv(v) result(ans)
-    type(rpe_var) :: ans(0:i_K1)
-    type(rpe_var),intent(in) :: v(1:i_K1)
+    REAL(KIND=RKD) :: ans(0:i_K1)
+    REAL(KIND=RKD),intent(in) :: v(1:i_K1)
     ans(0)=v(1)**2/2 + v(2)**2/2 + v(3)**2/2
     ans(1)=v(1)*v(2) - v(2)*v(3)
     ans(2)=v(1)**2/2 + v(3)*v(1)
     ans(3)=v(1)*v(2)
   end function nlvv
   
-  type(rpe_var) function velU(V,y) 
-    type(rpe_var), intent(in) :: V(i_KK),y
+  REAL(KIND=RKD) function velU(V,y) 
+    REAL(KIND=RKD), intent(in) :: V(i_KK),y
     velU= V(1) &
          +sin(d_beta*y) * V(2) &
          +cos(2d0*d_beta*y) * V(3)&
@@ -90,8 +89,8 @@ contains
     return
   end function velU
   
-  type(rpe_var) function velW(V,y)
-    type(rpe_var), intent(in) :: V(i_KK),y
+  REAL(KIND=RKD) function velW(V,y)
+    REAL(KIND=RKD), intent(in) :: V(i_KK),y
     velW = V(8)&
          +sin(d_beta*y) * V(9)&
          +cos(2d0*d_beta*y) * V(10)&
@@ -99,8 +98,8 @@ contains
     return
   end function velW
 
-  type(rpe_var) function velV(V,y)
-    type(rpe_var), intent(in) :: V(i_KK),y
+  REAL(KIND=RKD) function velV(V,y)
+    REAL(KIND=RKD), intent(in) :: V(i_KK),y
     velV= cos(d_beta*y) * V(5)&
          +sin(2d0*d_beta*y) * V(6)&
          +cos(3d0*d_beta*y) * V(7)

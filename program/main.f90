@@ -12,7 +12,6 @@ PROGRAM MAIN
   use transform
   use velocity
   use io
-  use rp_emulator
   implicit none
   real :: d_start, d_stop
    

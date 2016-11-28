@@ -1,26 +1,23 @@
 #include "../parallel.h"
  module parameters
 !***************************************************************************
-   use rp_emulator
    implicit none
    save
 
-!   INTEGER, PARAMETER :: RKD = SELECTED_REAL_KIND(6,37)
-   INTEGER, PARAMETER :: RKD = SELECTED_REAL_KIND(13,300)
-   !Default number of bits
-   INTEGER, parameter :: i_NB = 52!23 
+   INTEGER, PARAMETER :: RKD = SELECTED_REAL_KIND(6,37)
 
-   REAL(KIND=RKD)            ::  td_Re         = 200d0
+   REAL(KIND=RKD)            ::  d_Re         = 200d0!67.8d0!875d0
+   
    !NUMBER OF MODES TO USE IE HIGHEST WAVENUMBER + 1
-   integer,          parameter :: i_MM	        = 32
-   integer,          parameter :: i_NN          = 32
+   integer,          parameter :: i_MM	        = 32!4096!512!2048!4096
+   integer,          parameter :: i_NN          = 32!1024!512!2048!512!2048!4096
    integer,          parameter :: i_K0          = 4
    
-   REAL(KIND=RKD), parameter :: td_PI          = 3.1415926535897931d0
-   REAL(KIND=RKD), parameter :: td_Lx          = 16d0
-   REAL(KIND=RKD), parameter :: td_Lz          = 16d0
-   REAL(KIND=RKD), parameter :: td_alpha       = 2d0*td_PI/td_Lx
-   REAL(KIND=RKD), parameter :: td_gamma       = 2d0*td_PI/td_Lz
+   REAL(KIND=RKD), parameter :: d_PI          = 3.1415926535897931d0
+   REAL(KIND=RKD), parameter :: d_Lx          = 16d0!8192d0!1024d0!4096d0!960d0!16d0
+   REAL(KIND=RKD), parameter :: d_Lz          = 16d0!2048d0!1024d0!4096d0!1024d0!4096d0!960d0!1024d0
+   REAL(KIND=RKD), parameter :: d_alpha       = 2d0*d_PI/d_Lx!0.5d0
+   REAL(KIND=RKD), parameter :: d_gamma       = 2d0*d_PI/d_Lz!0.5d0
 
    logical,          parameter :: s_reflect     = .false.!.TRUE.!.FALSE. 
    logical,          parameter :: s_uvreflect   = .FALSE.
@@ -29,17 +26,17 @@
    integer, parameter          :: i_maxtstep    = 1d8
    integer, parameter          :: i_save_rate1  = 5000!12500!1d8!50000!100000!5000
    integer, parameter          :: i_save_rate2  = 50!25!25!50 
-   REAL(KIND=RKD), parameter :: td_maxt        = -1d0
+   REAL(KIND=RKD), parameter :: d_maxt        = -1d0
    REAL(KIND=RKD), parameter :: d_cpuhours    = 9.7d0!1.7d0!19.6d0!0.98d0!1d99 !90d0
-   REAL(KIND=RKD), parameter :: td_time        = -1d0 !0d0
-   REAL(KIND=RKD), parameter :: td_thdeg       = 0d0!24d0
-   REAL(KIND=RKD), parameter :: td_dt          = 0.01d0!0.02d0
-   REAL(KIND=RKD), parameter :: td_minE        = 1d-6
+   REAL(KIND=RKD), parameter :: d_time        = -1d0 !0d0
+   REAL(KIND=RKD), parameter :: d_thdeg       = 0d0!24d0
+   REAL(KIND=RKD), parameter :: d_dt          = 0.01d0!0.02d0
+   REAL(KIND=RKD), parameter :: d_minE        = 1d-6
 
-   REAL(KIND=RKD), parameter :: td_HYPO        = 0d0!1d-6 !1d-01
+   REAL(KIND=RKD), parameter :: d_HYPO        = 0d0!1d-6 !1d-01
    integer, parameter          :: i_PHYPO       = 2
-   REAL(KIND=RKD), parameter :: td_drag        = 1d-2 !1d-01
-   REAL(KIND=RKD), parameter :: td_vdrag       = 0d0
+   REAL(KIND=RKD), parameter :: d_drag        = 1d-2 !1d-01
+   REAL(KIND=RKD), parameter :: d_vdrag       = 0d0
    logical,          parameter :: s_dragall     = .true.!.false.
 
    logical, parameter          :: s_HIS         = .FALSE. !HISTORY DATA
@@ -57,8 +54,8 @@
    integer,          parameter :: i_KK          = 3*i_K0-1
    integer,          parameter :: i_M           = 2*(i_MM-1)
    integer,          parameter :: i_Ny          = 15
-   REAL(KIND=RKD),   parameter :: td_beta        = td_PI/2d0
-   REAL(KIND=RKD),   parameter :: td_theta       = td_thdeg/180d0*td_PI
+   REAL(KIND=RKD), parameter :: d_beta        = d_PI/2d0
+   REAL(KIND=RKD), parameter :: d_theta       = d_thdeg/180d0*d_PI
 
    integer,          parameter :: i_3M          = 3*i_MM
    integer,          parameter :: i_3N          = 3*i_NN
@@ -76,28 +73,8 @@
    integer,          parameter :: i_KK1  = i_KK-1
    integer,          parameter :: i_K1  = i_K0-1
 
-   type(rpe_var) :: tim_t
+   REAL(KIND=RKD) :: tim_t
    integer          :: tim_step
-
-! RPE versions
-   type(rpe_var)   :: rp0             
-   type(rpe_var)   :: d_Re            
-   type(rpe_var)   :: d_PI            
-   type(rpe_var)   :: d_Lx            
-   type(rpe_var)   :: d_Lz            
-   type(rpe_var)   :: d_alpha         
-   type(rpe_var)   :: d_gamma         
-   type(rpe_var)   :: d_maxt
-   type(rpe_var)   :: d_time          
-   type(rpe_var)   :: d_thdeg         
-   type(rpe_var)   :: d_dt            
-   type(rpe_var)   :: d_minE          
-   type(rpe_var)   :: d_HYPO          
-   type(rpe_var)   :: d_drag          
-   type(rpe_var)   :: d_vdrag         
-   type(rpe_var)   :: d_beta          
-   type(rpe_var)   :: d_theta         
-   
 !---------------------------------------------------------------------------
 !  check params are ok
 !---------------------------------------------------------------------------
@@ -107,35 +84,20 @@ contains
    subroutine par_precompute()
       integer :: itmp
       if (d_time > 0d0) then
-         tim_t=d_time!rpe_literal(d_time,i_nb)
+         tim_t=d_time
       else
-         tim_t=rpe_literal(0.0,i_nb)
+         tim_t=0d0
       end if
       tim_step=0
       itmp=mod(i_M,_Np)
+!      if(itmp /= 0) stop 'mpi_precompute: incorrect num procs, M'
       itmp=mod(i_NN,_Np)
+!      if(itmp /= 0) stop 'mpi_precompute: incorrect num procs, N'
 
-      RPE_ACTIVE = .TRUE.
-      RPE_DEFAULT_SBITS = i_nb
-      RPE_IEEE_HALF = .TRUE.
+!      print*, "i_Mp : ",i_Mp
+!      print*, "i_Np : ",i_Np
 
-      rp0 = rpe_literal(0.0,i_nb)            
-      d_Re = rpe_literal(td_Re,i_nb)
-      d_PI = rpe_literal(td_PI,i_nb)            
-      d_Lx = rpe_literal(td_Lx,i_nb)            
-      d_Lz = rpe_literal(td_Lz,i_nb)            
-      d_alpha = rpe_literal(td_alpha,i_nb)         
-      d_gamma = rpe_literal(td_gamma,i_nb)         
-      d_time = rpe_literal(td_time,i_nb)
-      d_thdeg = rpe_literal(td_thdeg,i_nb)         
-      d_dt = rpe_literal(td_dt,i_nb)            
-      d_minE = rpe_literal(td_minE,i_nb)          
-      d_HYPO = rpe_literal(td_HYPO,i_nb)          
-      d_drag = rpe_literal(td_drag,i_nb)          
-      d_vdrag = rpe_literal(td_vdrag,i_nb)         
-      d_beta = rpe_literal(td_beta,i_nb)          
-      d_theta = rpe_literal(td_theta,i_nb)         
-      
+
    end subroutine par_precompute
  
 
