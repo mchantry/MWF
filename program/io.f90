@@ -136,7 +136,7 @@
 
       e=nf90_get_att(f,nf90_global,'t', d)
       if(d_time<rp0) then
-         tim_t%val = d
+         tim_t= d
          call apply_truncation(tim_t)
       end if
       if(mpi_rnk==0 .and. abs(tim_t-d)>1d-5)  &
@@ -282,18 +282,18 @@ _loop_kmn_vars
             pN0 = var_N%pH0_(r)
             pN1 = var_N%pH1_(r)
             mpi_tg = r
-            call mpi_recv( c1%Re(1,0,0), i_M*(pN1+1)*i_K, mpi_real,  &
+            call mpi_recv( c1%Re(1,0,0), i_M*(pN1+1)*i_K, mpi_double_precision,  &
                r, mpi_tg, mpi_comm_world, mpi_st, mpi_er)
-            call mpi_recv( c1%Im(1,0,0), i_M*(pN1+1)*i_K, mpi_real,  &
+            call mpi_recv( c1%Im(1,0,0), i_M*(pN1+1)*i_K, mpi_double_precision,  &
                r, mpi_tg, mpi_comm_world, mpi_st, mpi_er)
             e=nf90_put_var(f,id,c1%Re(1:i_K,0:i_M1,0:pN1), start=(/1,1,pN0+1,1/))
             e=nf90_put_var(f,id,c1%Im(1:i_K,0:i_M1,0:pN1), start=(/1,1,pN0+1,2/))
          end do
       else
          mpi_tg = mpi_rnk
-         call mpi_send( ioa%Re(1,0,0), i_M*(var_N%pH1+1)*i_K, mpi_real,  &
+         call mpi_send( ioa%Re(1,0,0), i_M*(var_N%pH1+1)*i_K, mpi_double_precision,  &
             0, mpi_tg, mpi_comm_world, mpi_er)
-         call mpi_send( ioa%Im(1,0,0), i_M*(var_N%pH1+1)*i_K, mpi_real,  &
+         call mpi_send( ioa%Im(1,0,0), i_M*(var_N%pH1+1)*i_K, mpi_double_precision,  &
             0, mpi_tg, mpi_comm_world, mpi_er)
       end if
 #endif      
@@ -311,7 +311,7 @@ _loop_kmn_vars
      character(4) :: cnum
      integer :: i
      _loop_kmn_vars
-10   format(i4,1e20.12)
+10   format(i4,1e24.12e5)
      
      call var_mpt2spec(vel_c,tmp)
      n_ = 0.0_RKD
@@ -330,17 +330,17 @@ _loop_kmn_vars
      
 #ifdef _MPI
      call mpi_barrier(mpi_comm_world, mpi_er)
-     call mpi_allreduce(n_(0), n__(0), i_NN, mpi_real,  &
+     call mpi_allreduce(n_(0), n__(0), i_NN, mpi_double_precision,  &
           mpi_max, mpi_comm_world, mpi_er)
      n_ = n__
-     call mpi_allreduce(m_(0), m__(0), i_MM, mpi_real,  &
+     call mpi_allreduce(m_(0), m__(0), i_MM, mpi_double_precision,  &
           mpi_max, mpi_comm_world, mpi_er)
      m_ = m__
 #endif
      if(mpi_rnk/=0) return
      write(cnum,'(I4.4)') io_save1
      open(11, status='unknown', file='vel_spec'//cnum//'.dat')
-     write(11,*) '# t = ', tim_t
+     write(11,*) '# t = ', tim_t%val
      write(11,*) '# m'
      do i = 0, i_MM1
         write(11,10) i, m_(i)      
@@ -365,7 +365,7 @@ _loop_kmn_vars
       character(4) :: cnum
       integer :: i
       _loop_kmn_vars
-   10 format(i4,1e20.12)
+   10 format(i4,1e24.12e5)
       
       n_ = 0.0_RKD
       m_ = 0.0_RKD
@@ -382,17 +382,17 @@ _loop_kmn_vars
       
 #ifdef _MPI
       call mpi_barrier(mpi_comm_world, mpi_er)
-      call mpi_allreduce(n_(0), n__(0), i_NN, mpi_real,  &
+      call mpi_allreduce(n_(0), n__(0), i_NN, mpi_double_precision,  &
          mpi_max, mpi_comm_world, mpi_er)
       n_ = n__
-      call mpi_allreduce(m_(0), m__(0), i_MM, mpi_real,  &
+      call mpi_allreduce(m_(0), m__(0), i_MM, mpi_double_precision,  &
          mpi_max, mpi_comm_world, mpi_er)
       m_ = m__
 #endif
       if(mpi_rnk/=0) return
       write(cnum,'(I4.4)') io_save1
       open(11, status='unknown', file='vel_spec'//cnum//'.dat')
-      write(11,*) '# t = ', tim_t
+      write(11,*) '# t = ', tim_t%val
       write(11,*) '# m'
       do i = 0, i_MM1
          write(11,10) i, m_(i)      

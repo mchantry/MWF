@@ -76,9 +76,10 @@
          do m = -(i_M-i_MM),i_MM1
             mm=modulo(m,i_3M)
             ms=modulo(m,i_M)
-            do k=1,i_KK
-               state_inp(k,mm)=cmplx(s%Re(k,ms,n)%val,s%Im(k,ms,n)%val)
-            end do
+            !  do k=1,i_KK
+            !    state_inp(k,mm)=cmplx(s%Re(k,ms,n)%val,s%Im(k,ms,n)%val)
+            ! end do
+            state_inp(:,mm)=cmplx(s%Re(:,ms,n)%val,s%Im(:,ms,n)%val)
          end do
          call fftw_execute_dft(plan_inp2mid,state_inp,state_inp)
          T(:,:,n)=state_inp   
@@ -88,13 +89,14 @@
          state_mid(:,i_NN:)=0d0
          state_mid(:,0:i_NN1)=Ts(:,:,m)
          call fftw_execute_dft_c2r(plan_mid2phy,state_mid,state_phy)
-         do n=0,i_3N-1
-            do k=1,i_KK
-               p%Re(k,n,m)%val = state_phy(k,n)
-            end do
-         end do
+         ! do n=0,i_3N-1
+         !    do k=1,i_KK
+         !       p%Re(k,n,m)%val = state_phy(k,n)
+         !    end do
+         ! end do
+         p%Re(:,:,m) = state_phy
       end do
-      call apply_truncation(p%Re)
+!      call apply_truncation(p%Re)
 
    end subroutine tra_spec2phys
 
@@ -122,12 +124,12 @@
          do m = - (i_M - i_MM),i_MM1
             mm = modulo(m,i_3M)
             ms = modulo(m,i_M)
-            s%Re(:,ms,n)%val=real(state_inp(:,mm))
-            s%Im(:,ms,n)%val=imag(state_inp(:,mm))
+            s%Re(:,ms,n)=real(state_inp(:,mm))
+            s%Im(:,ms,n)=imag(state_inp(:,mm))
          end do
       end do
-      call apply_truncation(s%Re)
-      call apply_truncation(s%Im)
+!      call apply_truncation(s%Re)
+!      call apply_truncation(s%Im)
    end subroutine tra_spectest
 
 
@@ -142,11 +144,14 @@
       ! scale, FFTW 4.7.2
       scale_ = 1d0 / real(i_3M*i_3N)
       do m = 0,var_M%pH1
-         do n=0,i_3N-1
-            do k=1,i_KK
-               state_phy(k,n) = scale_ * p%Re(k,n,m)%val
-            end do
-         end do
+         ! do n=0,i_3N-1
+         !    do k=1,i_KK
+         !       state_phy(k,n) = scale_ * p%Re(k,n,m)%val
+         !    end do
+         ! end do
+         state_phy = scale_ * p%Re(:,:,m)%val
+!         state_phy = scale_ * p%Re%val(:,:,m)
+!         state_phy = p%Re%val(:,:,m)
          call fftw_execute_dft_r2c(plan_phy2mid,state_phy,state_mid)
          Ts(:,:,m) = state_mid(:,0:i_NN1)
       end do
@@ -157,14 +162,16 @@
          do m = - (i_M - i_MM),i_MM1
             mm = modulo(m,i_3M)
             ms = modulo(m,i_M)
-            do k=1,i_KK
-               s%Re(k,ms,n)%val= real(state_inp(k,mm))
-               s%Im(k,ms,n)%val=imag(state_inp(k,mm))
-            end do
+            ! do k=1,i_KK
+            !    s%Re(k,ms,n)%val= real(state_inp(k,mm))
+            !    s%Im(k,ms,n)%val=imag(state_inp(k,mm))
+            ! end do
+            s%Re(:,ms,n)=real(state_inp(:,mm))
+            s%Im(:,ms,n)=imag(state_inp(:,mm))
          end do
       end do
-      call apply_truncation(s%Re)
-      call apply_truncation(s%Im)
+!      call apply_truncation(s%Re)
+!      call apply_truncation(s%Im)
    end subroutine tra_phys2spec
 
 !------------------------------------------------------------------------

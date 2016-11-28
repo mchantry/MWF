@@ -58,13 +58,15 @@
    subroutine var_mpt_io2r(b,a)
      type (mpt), intent(out) :: a
      type (iompt), intent(in) :: b
-     _loop_kmn_vars
-     _loop_kmn_begin
-     a%Re(k,m,n)%val=b%Re(k,m,n)
-     a%Im(k,m,n)%val=b%Im(k,m,n)
-     call apply_truncation(a%Re(k,m,n))
-     call apply_truncation(a%Im(k,m,n))
-     _loop_kmn_end
+!     _loop_kmn_vars
+!     _loop_kmn_begin
+!     a%Re(k,m,n)%val=b%Re(k,m,n)
+!     a%Im(k,m,n)%val=b%Im(k,m,n)
+!     call apply_truncation(a%Re(k,m,n))
+!     call apply_truncation(a%Im(k,m,n))
+!     _loop_kmn_end
+     a%Re=b%Re
+     a%Im=b%Im
    end subroutine var_mpt_io2r
 
    subroutine var_uvreflect(c)

@@ -5,10 +5,10 @@
    implicit none
    save
 
-!   INTEGER, PARAMETER :: RKD = SELECTED_REAL_KIND(6,37)
-   INTEGER, PARAMETER :: RKD = SELECTED_REAL_KIND(13,300)
+!   INTEGER, PARAMETER :: RKD = KIND(1.0)!SELECTED_REAL_KIND(6,37)
+   INTEGER, PARAMETER :: RKD = KIND(1.0d0)!SELECTED_REAL_KIND(13,300)
    !Default number of bits
-   INTEGER, parameter :: i_NB = 52!23 
+   INTEGER, parameter :: i_NB = 15 
 
    REAL(KIND=RKD)            ::  td_Re         = 200d0
    !NUMBER OF MODES TO USE IE HIGHEST WAVENUMBER + 1
@@ -26,7 +26,7 @@
    logical,          parameter :: s_uvreflect   = .FALSE.
    logical,          parameter :: s_wreflect    = .false.
 
-   integer, parameter          :: i_maxtstep    = 1d8
+   integer, parameter          :: i_maxtstep    = 150000!1d8
    integer, parameter          :: i_save_rate1  = 5000!12500!1d8!50000!100000!5000
    integer, parameter          :: i_save_rate2  = 50!25!25!50 
    REAL(KIND=RKD), parameter :: td_maxt        = -1d0
