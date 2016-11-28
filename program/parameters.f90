@@ -81,6 +81,7 @@
 
 ! RPE versions
    type(rpe_var)   :: rp0             
+   type(rpe_var)   :: rp2             
    type(rpe_var)   :: d_Re            
    type(rpe_var)   :: d_PI            
    type(rpe_var)   :: d_Lx            
@@ -120,6 +121,7 @@ contains
       RPE_IEEE_HALF = .TRUE.
 
       rp0 = rpe_literal(0.0,i_nb)            
+      rp2 = rpe_literal(2.0,i_nb)            
       d_Re = rpe_literal(td_Re,i_nb)
       d_PI = rpe_literal(td_PI,i_nb)            
       d_Lx = rpe_literal(td_Lx,i_nb)            
