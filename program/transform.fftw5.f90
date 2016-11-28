@@ -191,7 +191,7 @@
          src  = modulo(mpi_sze-stp+mpi_rnk, mpi_sze)         
          mpi_tg = stp 
          call mpi_irecv( brecv(1,1,stp), 2*i_KK*(var_M%pH1_(src)+1)*(var_N%pH1+1), &
-            mpi_real, src, mpi_tg, mpi_comm_world,  &
+            mpi_double_precision, src, mpi_tg, mpi_comm_world,  &
             mpi_rq(stp), mpi_er)
       end do
       do stp = 0, mpi_sze-1
@@ -206,7 +206,7 @@
          end do
          mpi_tg = stp
          call mpi_isend( bsend(1,1,stp), 2*i_KK*(var_N%pH1_(dst)+1)*(var_M%pH1+1),  &
-            mpi_real, dst, mpi_tg, mpi_comm_world,  &
+            mpi_double_precision, dst, mpi_tg, mpi_comm_world,  &
             mpi_rq(mpi_sze+stp), mpi_er)
       end do
 
@@ -249,7 +249,7 @@
          src  = modulo(mpi_sze-stp+mpi_rnk, mpi_sze)         
          mpi_tg = stp 
             call mpi_irecv( brecv(1,1,stp), 2*i_KK*(var_N%pH1_(src)+1)*(var_M%pH1+1), &
-            mpi_real, src, mpi_tg, mpi_comm_world,  &
+            mpi_double_precision, src, mpi_tg, mpi_comm_world,  &
             mpi_rq(stp), mpi_er)
       end do
       do stp = 0, mpi_sze-1
@@ -265,7 +265,7 @@
          end do
          mpi_tg = stp
          call mpi_isend( bsend(1,1,stp), 2*i_KK*(var_M%ph1_(dst)+1)*(var_N%pH1+1),  &
-            mpi_real, dst, mpi_tg, mpi_comm_world,  &
+            mpi_double_precision, dst, mpi_tg, mpi_comm_world,  &
             mpi_rq(mpi_sze+stp), mpi_er)
       end do
 
