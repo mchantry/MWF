@@ -6,7 +6,8 @@ UTIL		= wholevtk
 UTIL		= fftwtest
 UTIL		= randIC
 
-TRANSFORM	= fftw5
+#TRANSFORM	= fftw5
+TRANSFORM	= fftwf
 MODES		= M4
 MODSOBJ		= mpi.o parameters.o \
 		modes.o variables.o transform.o velocity.o \

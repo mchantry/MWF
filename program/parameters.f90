@@ -5,10 +5,10 @@
    implicit none
    save
 
-!   INTEGER, PARAMETER :: RKD = KIND(1.0)!SELECTED_REAL_KIND(6,37)
+   INTEGER, PARAMETER :: FKD = KIND(1.0)!SELECTED_REAL_KIND(6,37)
    INTEGER, PARAMETER :: RKD = KIND(1.0d0)!SELECTED_REAL_KIND(13,300)
    !Default number of bits
-   INTEGER, parameter :: i_NB = 15 
+   INTEGER, parameter :: i_NB = 23
 
    REAL(KIND=RKD)            ::  td_Re         = 200d0
    !NUMBER OF MODES TO USE IE HIGHEST WAVENUMBER + 1
@@ -107,14 +107,7 @@ contains
 
    subroutine par_precompute()
       integer :: itmp
-      if (d_time > 0d0) then
-         tim_t=d_time!rpe_literal(d_time,i_nb)
-      else
-         tim_t=rpe_literal(0.0,i_nb)
-      end if
       tim_step=0
-      itmp=mod(i_M,_Np)
-      itmp=mod(i_NN,_Np)
 
       RPE_ACTIVE = .TRUE.
       RPE_DEFAULT_SBITS = i_nb
@@ -122,21 +115,31 @@ contains
 
       rp0 = rpe_literal(0.0,i_nb)            
       rp2 = rpe_literal(2.0,i_nb)            
-      d_Re = rpe_literal(td_Re,i_nb)
-      d_PI = rpe_literal(td_PI,i_nb)            
-      d_Lx = rpe_literal(td_Lx,i_nb)            
-      d_Lz = rpe_literal(td_Lz,i_nb)            
-      d_alpha = rpe_literal(td_alpha,i_nb)         
-      d_gamma = rpe_literal(td_gamma,i_nb)         
-      d_time = rpe_literal(td_time,i_nb)
-      d_thdeg = rpe_literal(td_thdeg,i_nb)         
-      d_dt = rpe_literal(td_dt,i_nb)            
-      d_minE = rpe_literal(td_minE,i_nb)          
-      d_HYPO = rpe_literal(td_HYPO,i_nb)          
-      d_drag = rpe_literal(td_drag,i_nb)          
-      d_vdrag = rpe_literal(td_vdrag,i_nb)         
-      d_beta = rpe_literal(td_beta,i_nb)          
-      d_theta = rpe_literal(td_theta,i_nb)         
+
+      tim_t%sbits=52
+!      d_dt%sbits=23
+      
+      if (d_time > 0d0) then
+         tim_t=d_time
+      else
+         tim_t=0.0
+      end if
+
+      d_Re = td_Re
+      d_PI = td_PI            
+      d_Lx = td_Lx            
+      d_Lz = td_Lz            
+      d_alpha = td_alpha         
+      d_gamma = td_gamma         
+      d_time = td_time
+      d_thdeg = td_thdeg         
+      d_dt = td_dt            
+      d_minE = td_minE          
+      d_HYPO = td_HYPO          
+      d_drag = td_drag          
+      d_vdrag = td_vdrag         
+      d_beta = td_beta          
+      d_theta = td_theta         
       
    end subroutine par_precompute
  
