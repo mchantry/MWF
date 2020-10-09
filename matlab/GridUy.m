@@ -48,8 +48,10 @@ gxsz2=[gxsz fliplr(conj(gxsz))];
 U=ifft(gxsz2,[],2,'symmetric');
 Nx = size(U,1)
 Nz = size(U,2)
+%Transpose U so x-direction is horizontal
+U=U';
 %Make x & z grid
-xx=[0:Nx-1]*Lx/(Nx+2);
+xx=[0:Nx-1]*Lx/Nx;
 zz=[0:Nz-1]*Lz/Nz;
 [xxx,zzz]=meshgrid(xx,zz);
 
