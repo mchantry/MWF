@@ -41,11 +41,11 @@ nnx = size(spy,1)/2;
 tmpspy=zeros([size(spy,1)+2,size(spy,2)]);
 tmpspy(1:nnx,:)=spy(1:nnx,:);
 tmpspy(end-nnx:end,:)=spy(end-nnx:end,:);
-gxsz=ifft(tmpspy,[],1);
+gxsz=ifft(tmpspy,[],1)*size(tmpspy,1);
 %Add symmetry properties of spectral representation
 gxsz2=[gxsz fliplr(conj(gxsz))];
 %Tranform in z
-U=ifft(gxsz2,[],2,'symmetric');
+U=ifft(gxsz2,[],2,'symmetric')*size(gxsz2,2);
 Nx = size(U,1)
 Nz = size(U,2)
 %Transpose U so x-direction is horizontal
