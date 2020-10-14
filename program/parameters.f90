@@ -12,8 +12,8 @@
    integer,          parameter :: i_K0          = 4
    
    double precision, parameter :: d_PI          = 3.1415926535897931d0
-   double precision, parameter :: d_Lx          = 16d0!1024d0!4096d0!960d0!16d0
-   double precision, parameter :: d_Lz          = 16d0!1024d0!4096d0!1024d0!4096d0!960d0!1024d0
+   double precision, parameter :: d_Lx          = 12d0!4096d0!960d0!16d0
+   double precision, parameter :: d_Lz          = 6d0!4096d0!1024d0!4096d0!960d0!1024d0
    double precision, parameter :: d_alpha       = 2d0*d_PI/d_Lx!0.5d0
    double precision, parameter :: d_gamma       = 2d0*d_PI/d_Lz!0.5d0
 
@@ -21,11 +21,11 @@
    logical,          parameter :: s_uvreflect   = .FALSE.
    logical,          parameter :: s_wreflect    = .false.
 
-   integer, parameter          :: i_maxtstep    = 150000!1d8
-   integer, parameter          :: i_save_rate1  = 5000!12500!1d8!50000!100000!5000
+   integer, parameter          :: i_maxtstep    = 1500000!1d8
+   integer, parameter          :: i_save_rate1  = 1000!5000!12500!1d8!50000!100000!5000
    integer, parameter          :: i_save_rate2  = 50!25!25!50 
    double precision, parameter :: d_maxt        = -1d0
-   double precision, parameter :: d_cpuhours    = 9.7d0!1.7d0!19.6d0!0.98d0!1d99 !90d0
+   double precision, parameter :: d_cpuhours    = 99.7d0!1.7d0!19.6d0!0.98d0!1d99 !90d0
    double precision, parameter :: d_time        = -1d0 !0d0
    double precision, parameter :: d_thdeg       = 0d0!24d0
    double precision, parameter :: d_dt          = 0.01d0!0.02d0
@@ -47,10 +47,10 @@
    !---------------------------------------------------------------------------
    !  Fixed parameters
    !---------------------------------------------------------------------------
-   integer,	     parameter :: i_N           = 2*(i_NN-1)
+   integer,	     parameter :: i_N           = 2*(i_NN-1) + 1
    integer,          parameter :: i_K           = 2*i_K0-1
    integer,          parameter :: i_KK          = 3*i_K0-1
-   integer,          parameter :: i_M           = 2*(i_MM-1)
+   integer,          parameter :: i_M           = 2*(i_MM-1)+1
    integer,          parameter :: i_Ny          = 15
    double precision, parameter :: d_beta        = d_PI/2d0
    double precision, parameter :: d_theta       = d_thdeg/180d0*d_PI
