@@ -1,29 +1,25 @@
 INSTDIR		= ./install/
 PROGDIR		= ./program/
 UTILDIR		= ./utils/
-UTIL		= seriesvtk
-#UTIL		= wholevtk
-UTIL		= quadX
+UTIL		= randIC
 
 TRANSFORM	= fftw5
 MODES		= M4
 MODSOBJ		= mpi.o parameters.o \
 		modes.o variables.o transform.o velocity.o \
 		turb.o io.o 
-#TURING COMPILATION
-#COMPILER        = mpixlf90_r
-#COMPFLAGS	= -qsuffix=cpp=f90 -c -O3 -ffree-line-length-none #-c -O3 -fbounds-check 
-#LIBS		= -lm 
-#ADA COMPILATION
-COMPILER        = mpif90
-COMPFLAGS       = -ffree-line-length-none -x f95-cpp-input -c -O3 -mcmodel=large \
-	-I/network/aopp/cirrus/pred/sw/netcdf/4.3.3.1/gnu/463/include
+
+NETCDFPATH = /usr/local/Cellar/netcdf/4.7.4_1
+FFTWPATH = /usr/local/Cellar/fftw/3.3.8_2
+
+COMPILER        = mpifort
+COMPFLAGS       = -ffree-line-length-none -x f95-cpp-input -c -O3 \
+		-I$(NETCDFPATH)/include/ \
+		-I$(FFTWPATH)/include/
 LIBS            = -lm \
-	-L/network/aopp/cirrus/pred/sw/netcdf/4.3.3.1/gnu/463/lib -lnetcdff -lnetcdf \
-	-L/network/home/aopp/chantry/code/fftw/lib -lfftw3
-#COMPILER        = mpiifort
-#COMPFLAGS       = -fpp -132 -c -O3 -mcmodel=medium -I/network/software/ubuntu_trusty/netcdf/3.6.3/include
-#LIBS            = -lm -L/network/software/ubuntu_trusty/netcdf/3.6.3/lib -lnetcdf
+		-L$(NETCDFPATH)/lib/ -lnetcdf -lnetcdff \
+		-L$(FFTWPATH)/lib -lfftw3
+
 #------------------------------------------------------------------------
 
 all : 	$(MODSOBJ) $(PROGDIR)main.f90
@@ -51,10 +47,13 @@ clean :
 	rm -f *.o *.mod *.d *.il core *.out
 
 #------------------------------------------------------------------------
+netcdf_int.o : $(PROGDIR)netcdf_int.f90 
+	$(COMPILER) $(COMPFLAGS) -o netcdf_int.o $(PROGDIR)netcdf_int.f90
+
 io.o : $(PROGDIR)io.f90 
 	$(COMPILER) $(COMPFLAGS) -o io.o $(PROGDIR)io.f90
 
-turb.o : $(PROGDIR)turb.f90 velocity.o mpi.o
+turb.o : $(PROGDIR)turb.f90 velocity.o mpi.o 
 	$(COMPILER) $(COMPFLAGS) $(PROGDIR)turb.f90
 
 mpi.o : $(PROGDIR)mpi.f90 parallel.h

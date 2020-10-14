@@ -54,7 +54,7 @@
       call dfftw_plan_many_dft_c2r(plan_mid2phy, 1, n, howmany,state_mid, inembed, istride, &
          1,  state_phy, ouembed, istride, 1, flag) !To Real transform
       call dfftw_plan_many_dft_r2c(plan_phy2mid, 1, n, howmany,state_phy, ouembed, istride, &
-         1,  state_mid, inembed, istride, 1, flag) !To Real transform
+         1,  state_mid, inembed, istride, 1, flag) !From Real transform
 
    end subroutine tra_precompute
 
