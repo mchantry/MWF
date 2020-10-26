@@ -610,7 +610,7 @@
         
         close(io)
      END if
-     print*,"Turbulent fraction :", dble(t)/(N_+1*M_+1)
+     print*,"Turbulent fraction :", dble(t)/((N_+1)*(M_+1))
   
    end subroutine io_writeVTK_txz
 
