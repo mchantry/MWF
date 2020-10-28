@@ -170,8 +170,8 @@ contains
 
     if(mpi_rnk/=0) return 
     do j=1,i_H
-       ji=int((j-1)*i_N/i_H)+1
-       ans(1,j)=dble(ji)*d_Lz/i_N
+       ji=int((j-1)*i_3N/i_H)+1
+       ans(1,j)=dble(ji)*d_Lz/i_3N
        ans(2,j)=velU(V%Re(:,ji,0),y)
        ans(3,j)=velV(V%Re(:,ji,0),y)
        ans(4,j)=velW(V%Re(:,ji,0),y)
