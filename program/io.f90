@@ -105,7 +105,9 @@
          end if
          io_save2 = io_save2+1
       end if
-      
+
+! Every 50 i_save_rate2 reopen vel_energy to
+! overcome buffering and force output
       if(modulo(tim_step,i_save_rate2*50)==0) then
          call io_closefiles()
          call io_openfiles()
